@@ -12,7 +12,7 @@ using Shared.Infrastructure;
 namespace Shared.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260420190529_IdentityInit1")]
+    [Migration("20260422183628_IdentityInit1")]
     partial class IdentityInit1
     {
         /// <inheritdoc />
