@@ -1,0 +1,14 @@
+﻿<h2>Créer un privilège</h2>
+
+<form method="post">
+    <div>
+        <label>Nom du privilège</label>
+        <input type="text" name="name" class="form-control" />
+    </div>
+
+    <br />
+    <button type="submit" class="btn btn-success">Créer</button>
+    <a asp-action="Admin" class="btn btn-secondary">Retour</a>
+</form>
+
+<div asp-validation-summary="All" style="color:red;"></div>

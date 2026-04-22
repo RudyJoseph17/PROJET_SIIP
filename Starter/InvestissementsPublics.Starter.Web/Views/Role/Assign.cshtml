@@ -1,0 +1,17 @@
+﻿@model List<Shared.Domain.Entities.Privilege>
+
+<h2>Assigner des privilèges</h2>
+
+<form method="post">
+    <input type="hidden" name="roleId" value="@ViewBag.Role.Id" />
+
+    @foreach (var p in Model)
+    {
+        <div class="form-check">
+            <input type="checkbox" name="privileges" value="@p.IdPrivilege" class="form-check-input" />
+            <label class="form-check-label">@p.NomPrivilege</label>
+        </div>
+    }
+
+    <button type="submit" class="btn btn-primary mt-2">Enregistrer</button>
+</form>

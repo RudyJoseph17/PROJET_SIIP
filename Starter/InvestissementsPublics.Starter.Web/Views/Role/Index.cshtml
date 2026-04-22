@@ -1,0 +1,28 @@
+﻿@model IEnumerable<RoleViewModel>
+
+<h2>Roles</h2>
+
+<a asp-action="Create" class="btn btn-primary">Créer un rôle</a>
+<a asp-action="CreatePrivilege" class="btn btn-success">Créer un privilège</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var role in Model)
+        {
+            <tr>
+                <td>@role.NomRole</td>
+                <td>
+                    <a asp-action="Assign" asp-route-roleId="@role.IdRoles" class="btn btn-warning">
+                        Assigner privilèges
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

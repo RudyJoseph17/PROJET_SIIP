@@ -1,0 +1,6 @@
+@SuiviEvaluation.API_HostAddress = http://localhost:5290
+
+GET {{SuiviEvaluation.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

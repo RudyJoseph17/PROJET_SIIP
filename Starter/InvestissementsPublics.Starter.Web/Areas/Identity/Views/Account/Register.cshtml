@@ -1,0 +1,23 @@
+﻿@page
+@model InvestissementsPublics.Starter.Web.Models.RegisterModel
+
+<h2>Créer un utilisateur</h2>
+
+<form method="post">
+    <input asp-for="Input.Nom" placeholder="Nom" />
+    <input asp-for="Input.Prenom" placeholder="Prénom" />
+    <input asp-for="Input.Ministere" placeholder="Ministère" />
+    <input asp-for="Input.Entite" placeholder="Entité" />
+    <input asp-for="Input.Role" placeholder="Rôle" />
+    <input asp-for="Input.Privilege" placeholder="Privilège" />
+    <input asp-for="Input.Username" placeholder="Nom utilisateur" />
+
+    <button type="submit">Créer</button>
+</form>
+
+@if (ViewData["GeneratedPassword"] != null)
+{
+    <div class="alert alert-success">
+        Mot de passe généré : <strong>@ViewData["GeneratedPassword"]</strong>
+    </div>
+}

@@ -1,0 +1,72 @@
+﻿@* @model AdminRolesViewModel
+
+<h2>Administration des rôles et privilèges</h2>
+
+<div style="margin-bottom:20px;">
+    <a asp-action="CreateRole" class="btn btn-outline-primary">+ Créer un rôle</a>
+    <a asp-action="CreatePrivilege" class="btn btn-outline-success">+ Créer un privilège</a>
+</div>
+
+<hr />
+
+<!-- ================= USER → ROLE ================= -->
+<h3>Assigner un rôle à un utilisateur</h3>
+
+<form asp-action="AssignUserToRole" method="post">
+
+    <label>Utilisateur</label>
+    <select asp-for="SelectedUserId" class="form-control">
+        <option value="">-- Choisir --</option>
+        @foreach (var user in Model.Users)
+        {
+            <option value="@user.Id">@user.UserName</option>
+        }
+    </select>
+
+    <label>Rôle</label>
+    <select asp-for="SelectedRoleName" class="form-control">
+        <option value="">-- Choisir --</option>
+        @foreach (var role in Model.Roles)
+        {
+            <option value="@role.Name">@role.Name</option>
+        }
+    </select>
+
+    <br />
+    <button type="submit" class="btn btn-primary">Assigner</button>
+</form>
+
+<hr />
+
+<!-- ================= ROLE → PRIVILEGES ================= -->
+<h3>Assigner des privilèges à un rôle</h3>
+
+<form asp-action="AssignPrivilegesToRole" method="post">
+
+    <label>Rôle</label>
+    <select asp-for="SelectedRoleId" class="form-control">
+        <option value="">-- Choisir --</option>
+        @foreach (var role in Model.Roles)
+        {
+            <option value="@role.Id">@role.Name</option>
+        }
+    </select>
+
+    <br />
+
+    <label>Privilèges</label>
+    <div>
+        @foreach (var p in Model.Privileges)
+        {
+            <div>
+                <input type="checkbox"
+                       name="SelectedPrivileges"
+                       value="@p.IdPrivilege" />
+                @p.NomPrivilege
+            </div>
+        }
+    </div>
+
+    <br />
+    <button type="submit" class="btn btn-success">Enregistrer</button>
+</form> *@

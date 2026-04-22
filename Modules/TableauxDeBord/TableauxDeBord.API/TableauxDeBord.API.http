@@ -1,0 +1,6 @@
+@TableauxDeBord.API_HostAddress = http://localhost:5106
+
+GET {{TableauxDeBord.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
