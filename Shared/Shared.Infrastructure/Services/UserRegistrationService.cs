@@ -35,6 +35,7 @@ namespace Shared.Infrastructure.Services
             var user = new ApplicationUser
             {
                 UserName = request.NomUtilisateur,
+                NomUtilisateur = request.NomUtilisateur,
                 Nom = request.Nom,
                 Prenom = request.Prenom,
                 Ministere = request.Ministere,
