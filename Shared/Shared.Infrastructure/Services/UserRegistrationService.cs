@@ -7,18 +7,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Shared.Infrastructure.Services
 {
     public class UserRegistrationService : IUserRegistrationService
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly IPasswordGenerator _passwordGenerator;
 
         public UserRegistrationService(
             UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager,
+            RoleManager<ApplicationRole> roleManager,
             IPasswordGenerator passwordGenerator)
         {
             _userManager = userManager;
@@ -48,7 +49,7 @@ namespace Shared.Infrastructure.Services
                 return (false, null, result.Errors.Select(e => e.Description));
 
             if (!await _roleManager.RoleExistsAsync(request.Role))
-                await _roleManager.CreateAsync(new IdentityRole(request.Role));
+                await _roleManager.CreateAsync(new ApplicationRole { Name = request.Role });
 
             await _userManager.AddToRoleAsync(user, request.Role);
 

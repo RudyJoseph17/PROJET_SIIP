@@ -54,7 +54,7 @@ namespace InvestissementsPublics.Starter.Web.Data
             {
                 admin = new ApplicationUser
                 {
-                    UserName = adminUserName,
+                    NomUtilisateur = adminUserName,
                     Email = adminEmail,
                     EmailConfirmed = true,
                     Nom = "Joseph",

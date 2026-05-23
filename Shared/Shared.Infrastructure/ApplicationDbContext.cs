@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore;
 using Shared.Domain.Entities;
+using System.Linq;
 
 namespace Shared.Infrastructure
 {
@@ -18,6 +20,16 @@ namespace Shared.Infrastructure
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            var boolConverter = new BoolToZeroOneConverter<short>();
+            foreach (var entityType in builder.Model.GetEntityTypes())
+            {
+                foreach (var property in entityType.GetProperties().Where(p => p.ClrType == typeof(bool)))
+                {
+                    property.SetValueConverter(boolConverter);
+                    property.SetColumnType("NUMBER(1)");
+                }
+            }
 
             builder.Entity<Privilege>()
                 .HasKey(p => p.IdPrivilege);
