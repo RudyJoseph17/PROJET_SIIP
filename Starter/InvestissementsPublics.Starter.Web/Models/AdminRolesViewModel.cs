@@ -13,12 +13,16 @@ namespace InvestissementsPublics.Starter.Web.Models
         public string NewUserPassword { get; set; } = string.Empty;
         public string NewUserNom { get; set; } = string.Empty;
         public string NewUserPrenom { get; set; } = string.Empty;
+        public string NewUserMinistere { get; set; } = string.Empty;
+        public string NewUserEntite { get; set; } = string.Empty;
 
         public string? EditUserId { get; set; }
         public string EditUserName { get; set; } = string.Empty;
         public string EditUserEmail { get; set; } = string.Empty;
         public string EditUserNom { get; set; } = string.Empty;
         public string EditUserPrenom { get; set; } = string.Empty;
+        public string EditUserMinistere { get; set; } = string.Empty;
+        public string EditUserEntite { get; set; } = string.Empty;
 
         public string NewRoleName { get; set; } = string.Empty;
         public string? EditRoleId { get; set; }

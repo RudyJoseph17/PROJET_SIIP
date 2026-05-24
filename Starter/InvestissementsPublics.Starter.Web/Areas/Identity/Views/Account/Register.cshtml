@@ -4,13 +4,17 @@
 <h2>Créer un utilisateur</h2>
 
 <form method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <input asp-for="Input.Nom" placeholder="Nom" />
     <input asp-for="Input.Prenom" placeholder="Prénom" />
-    <input asp-for="Input.Ministere" placeholder="Ministère" />
-    <input asp-for="Input.Entite" placeholder="Entité" />
+    <input asp-for="Input.Ministere" placeholder="Ministère" required />
+    <span asp-validation-for="Input.Ministere" class="text-danger"></span>
+    <input asp-for="Input.Entite" placeholder="Entité" required />
+    <span asp-validation-for="Input.Entite" class="text-danger"></span>
     <input asp-for="Input.Role" placeholder="Rôle" />
     <input asp-for="Input.Privilege" placeholder="Privilège" />
-    <input asp-for="Input.Username" placeholder="Nom utilisateur" />
+    <input asp-for="Input.NomUtilisateur" placeholder="Nom utilisateur" />
+    <span asp-validation-for="Input.NomUtilisateur" class="text-danger"></span>
 
     <button type="submit">Créer</button>
 </form>

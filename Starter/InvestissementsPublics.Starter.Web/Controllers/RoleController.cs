@@ -45,9 +45,12 @@ namespace InvestissementsPublics.Starter.Web.Controllers
             var user = new ApplicationUser
             {
                 UserName = model.NewUserName.Trim(),
+                NomUtilisateur = model.NewUserName.Trim(),
                 Email = model.NewUserEmail.Trim(),
                 Nom = model.NewUserNom?.Trim() ?? string.Empty,
                 Prenom = model.NewUserPrenom?.Trim() ?? string.Empty,
+                Ministere = model.NewUserMinistere?.Trim() ?? string.Empty,
+                Entite = model.NewUserEntite?.Trim() ?? string.Empty,
                 EmailConfirmed = true
             };
 
@@ -77,9 +80,12 @@ namespace InvestissementsPublics.Starter.Web.Controllers
             }
 
             user.UserName = model.EditUserName.Trim();
+            user.NomUtilisateur = model.EditUserName.Trim();
             user.Email = model.EditUserEmail.Trim();
             user.Nom = model.EditUserNom?.Trim() ?? string.Empty;
             user.Prenom = model.EditUserPrenom?.Trim() ?? string.Empty;
+            user.Ministere = model.EditUserMinistere?.Trim() ?? string.Empty;
+            user.Entite = model.EditUserEntite?.Trim() ?? string.Empty;
 
             var result = await _userManager.UpdateAsync(user);
             TempData[result.Succeeded ? "Success" : "Error"] = result.Succeeded
