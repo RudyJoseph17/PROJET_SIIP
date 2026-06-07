@@ -35,10 +35,11 @@ namespace InvestissementsPublics.Starter.Web.Controllers
         public async Task<IActionResult> CreateUser(AdminRolesViewModel model)
         {
             if (string.IsNullOrWhiteSpace(model.NewUserName) ||
-                string.IsNullOrWhiteSpace(model.NewUserEmail) ||
-                string.IsNullOrWhiteSpace(model.NewUserPassword))
+                            string.IsNullOrWhiteSpace(model.NewUserEmail) ||
+                            string.IsNullOrWhiteSpace(model.NewUserPassword) ||
+                            string.IsNullOrWhiteSpace(model.NewUserMinistere))
             {
-                TempData["Error"] = "Nom d'utilisateur, email et mot de passe sont obligatoires.";
+                TempData["Error"] = "Nom d'utilisateur, email, mot de passe et ministère sont obligatoires.";
                 return RedirectToAction(nameof(Admin));
             }
 

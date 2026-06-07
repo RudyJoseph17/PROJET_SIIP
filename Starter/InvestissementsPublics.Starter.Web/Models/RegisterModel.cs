@@ -22,6 +22,15 @@ namespace InvestissementsPublics.Starter.Web.Models
             if (!ModelState.IsValid)
                 return Page();
 
+            if (string.IsNullOrWhiteSpace(Input.Ministere) || string.IsNullOrWhiteSpace(Input.Entite))
+            {
+                ModelState.AddModelError(string.Empty, "Le ministère et l'entité sont obligatoires.");
+                return Page();
+            }
+
+            Input.Ministere = Input.Ministere.Trim();
+            Input.Entite = Input.Entite.Trim();
+
             var result = await _registrationService.RegisterAsync(Input);
 
             if (!result.Success)

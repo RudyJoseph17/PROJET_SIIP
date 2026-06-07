@@ -67,6 +67,10 @@ namespace InvestissementsPublics.Starter.Web.Controllers
 
             if (result.Succeeded)
             {
+                if (user.MustChangePassword)
+                {
+                    return RedirectToPage("/Account/Manage/ChangePassword", new { area = "Identity" });
+                }
                 // Redirection après succès
                 return RedirectToAction(
                                           "Index",
