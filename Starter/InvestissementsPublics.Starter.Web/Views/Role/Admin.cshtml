@@ -29,14 +29,22 @@
                     <div class="col-md-3">
                         <input asp-for="NewUserEmail" class="form-control" placeholder="Email" required />
                     </div>
-                    <div class="col-md-2">
-                        <input asp-for="NewUserPassword" class="form-control" placeholder="Mot de passe" required />
+                    <div class="col-md-12">
+                        <div class="form-text">
+                            Le mot de passe est généré automatiquement côté serveur lors de la création de l'utilisateur.
+                        </div>
                     </div>
                     <div class="col-md-2">
                         <input asp-for="NewUserNom" class="form-control" placeholder="Nom" />
                     </div>
                     <div class="col-md-2">
                         <input asp-for="NewUserPrenom" class="form-control" placeholder="Prénom" />
+                    </div>
+                    <div class="col-md-3">
+                        <input asp-for="NewUserMinistere" class="form-control" placeholder="Ministère" required />
+                    </div>
+                    <div class="col-md-3">
+                        <input asp-for="NewUserEntite" class="form-control" placeholder="Entité" />
                     </div>
                     <div class="col-12 text-end">
                         <button class="btn btn-primary" type="submit">Ajouter</button>
@@ -51,6 +59,8 @@
                                 <th>Email</th>
                                 <th>Nom</th>
                                 <th>Prénom</th>
+                                <th>Ministère</th>
+                                <th>Entité</th>
                                 <th style="width: 240px;">Actions</th>
                             </tr>
                         </thead>
@@ -58,7 +68,7 @@
                             @foreach (var user in Model.Users)
                             {
                                 <tr>
-                                    <td colspan="5">
+                                    <td colspan="7">
                                         <form asp-action="UpdateUser" method="post" class="row g-2 align-items-center">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="EditUserId" value="@user.Id" />
@@ -73,6 +83,12 @@
                                             </div>
                                             <div class="col-md-2">
                                                 <input name="EditUserPrenom" class="form-control form-control-sm" value="@user.Prenom" />
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input name="EditUserMinistere" class="form-control form-control-sm" value="@user.Ministere" />
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input name="EditUserEntite" class="form-control form-control-sm" value="@user.Entite" />
                                             </div>
                                             <div class="col-md-3 d-flex gap-2">
                                                 <button class="btn btn-sm btn-outline-primary" type="submit">Modifier</button>

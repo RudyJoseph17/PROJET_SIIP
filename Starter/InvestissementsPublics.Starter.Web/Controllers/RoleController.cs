@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Shared.Domain.Entities;
 using Shared.Infrastructure;
+using Shared.Domain.Interfaces;
 
 namespace InvestissementsPublics.Starter.Web.Controllers
 {
@@ -12,15 +13,18 @@ namespace InvestissementsPublics.Starter.Web.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly ApplicationDbContext _context;
+        private readonly IPasswordGenerator _passwordGenerator;
 
         public RoleController(
             UserManager<ApplicationUser> userManager,
             RoleManager<ApplicationRole> roleManager,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            IPasswordGenerator passwordGenerator)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _context = context;
+            _passwordGenerator = passwordGenerator;
         }
 
         [HttpGet]
@@ -35,13 +39,14 @@ namespace InvestissementsPublics.Starter.Web.Controllers
         public async Task<IActionResult> CreateUser(AdminRolesViewModel model)
         {
             if (string.IsNullOrWhiteSpace(model.NewUserName) ||
-                            string.IsNullOrWhiteSpace(model.NewUserEmail) ||
-                            string.IsNullOrWhiteSpace(model.NewUserPassword) ||
-                            string.IsNullOrWhiteSpace(model.NewUserMinistere))
+                string.IsNullOrWhiteSpace(model.NewUserEmail) ||
+                string.IsNullOrWhiteSpace(model.NewUserMinistere))
             {
-                TempData["Error"] = "Nom d'utilisateur, email, mot de passe et ministère sont obligatoires.";
+                TempData["Error"] = "Nom d'utilisateur, email et ministère sont obligatoires.";
                 return RedirectToAction(nameof(Admin));
             }
+
+            var generatedPassword = _passwordGenerator.Generate();
 
             var user = new ApplicationUser
             {
@@ -55,9 +60,9 @@ namespace InvestissementsPublics.Starter.Web.Controllers
                 EmailConfirmed = true
             };
 
-            var result = await _userManager.CreateAsync(user, model.NewUserPassword);
+            var result = await _userManager.CreateAsync(user, generatedPassword);
             TempData[result.Succeeded ? "Success" : "Error"] = result.Succeeded
-                ? "Utilisateur ajouté avec succès."
+                ? $"Utilisateur ajouté avec succès. Mot de passe généré : {generatedPassword}"
                 : string.Join(" | ", result.Errors.Select(e => e.Description));
 
             return RedirectToAction(nameof(Admin));
@@ -312,7 +317,7 @@ namespace InvestissementsPublics.Starter.Web.Controllers
                 Users = await _userManager.Users.AsNoTracking().OrderBy(u => u.UserName).ToListAsync(),
                 Roles = await _roleManager.Roles.AsNoTracking().OrderBy(r => r.Name).ToListAsync(),
                 Privileges = await _context.Privileges.AsNoTracking().OrderBy(p => p.NomPrivilege).ToListAsync(),
-                SelectedPrivileges = rolePrivileges.Select(rp => rp.IdPrivilege).Distinct().ToList()
+                SelectedPrivileges = rolePrivileges.Select(rp => rp.IdPrivilege).Distinct().ToList(),
             };
 
             return model;

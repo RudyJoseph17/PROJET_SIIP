@@ -10,7 +10,6 @@ namespace InvestissementsPublics.Starter.Web.Models
 
         public string NewUserName { get; set; } = string.Empty;
         public string NewUserEmail { get; set; } = string.Empty;
-        public string NewUserPassword { get; set; } = string.Empty;
         public string NewUserNom { get; set; } = string.Empty;
         public string NewUserPrenom { get; set; } = string.Empty;
         public string NewUserMinistere { get; set; } = string.Empty;
