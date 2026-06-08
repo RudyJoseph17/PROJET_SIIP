@@ -207,7 +207,7 @@ namespace InvestissementsPublics.Starter.Web.Controllers
                 return RedirectToAction(nameof(Admin));
             }
 
-            var exists = await _context.Privileges.AnyAsync(p => p.NomPrivilege == name);
+            var exists = (await _context.Privileges.CountAsync(p => p.NomPrivilege == name)) > 0;
             if (exists)
             {
                 TempData["Error"] = "Ce privilège existe déjà.";

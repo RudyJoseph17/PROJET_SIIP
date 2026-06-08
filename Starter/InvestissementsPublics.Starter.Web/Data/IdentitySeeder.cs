@@ -116,9 +116,9 @@ namespace InvestissementsPublics.Starter.Web.Data
                     // =========================
                     if (roleSystem != null)
                     {
-                        var exists = await db.RolePrivileges.AnyAsync(rp =>
-                            rp.RoleId == roleSystem.Id &&
-                            rp.IdPrivilege == privilege.IdPrivilege);
+                        var exists = (await db.RolePrivileges.CountAsync(rp =>
+                        rp.RoleId == roleSystem.Id &&
+                        rp.IdPrivilege == privilege.IdPrivilege)) > 0;
 
                         if (!exists)
                         {
