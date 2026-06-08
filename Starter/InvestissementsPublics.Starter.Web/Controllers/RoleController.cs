@@ -61,9 +61,17 @@ namespace InvestissementsPublics.Starter.Web.Controllers
             };
 
             var result = await _userManager.CreateAsync(user, generatedPassword);
-            TempData[result.Succeeded ? "Success" : "Error"] = result.Succeeded
-                ? $"Utilisateur ajouté avec succès. Mot de passe généré : {generatedPassword}"
-                : string.Join(" | ", result.Errors.Select(e => e.Description));
+            if (result.Succeeded)
+            {
+                var roleResult = await ReplaceUserRolesAsync(user, model.NewUserRoleIds);
+                TempData[roleResult.Succeeded ? "Success" : "Error"] = roleResult.Succeeded
+                    ? $"Utilisateur ajouté avec succès. Mot de passe généré : {generatedPassword}"
+                    : string.Join(" | ", roleResult.Errors.Select(e => e.Description));
+            }
+            else
+            {
+                TempData["Error"] = string.Join(" | ", result.Errors.Select(e => e.Description));
+            }
 
             return RedirectToAction(nameof(Admin));
         }
@@ -94,9 +102,17 @@ namespace InvestissementsPublics.Starter.Web.Controllers
             user.Entite = model.EditUserEntite?.Trim() ?? string.Empty;
 
             var result = await _userManager.UpdateAsync(user);
-            TempData[result.Succeeded ? "Success" : "Error"] = result.Succeeded
-                ? "Utilisateur modifié avec succès."
-                : string.Join(" | ", result.Errors.Select(e => e.Description));
+            if (result.Succeeded)
+            {
+                var roleResult = await ReplaceUserRolesAsync(user, model.EditUserRoleIds);
+                TempData[roleResult.Succeeded ? "Success" : "Error"] = roleResult.Succeeded
+                    ? "Utilisateur et rôles modifiés avec succès."
+                    : string.Join(" | ", roleResult.Errors.Select(e => e.Description));
+            }
+            else
+            {
+                TempData["Error"] = string.Join(" | ", result.Errors.Select(e => e.Description));
+            }
 
             return RedirectToAction(nameof(Admin));
         }
@@ -166,9 +182,15 @@ namespace InvestissementsPublics.Starter.Web.Controllers
             role.NormalizedName = model.EditRoleName.Trim().ToUpperInvariant();
 
             var result = await _roleManager.UpdateAsync(role);
-            TempData[result.Succeeded ? "Success" : "Error"] = result.Succeeded
-                ? "Rôle modifié avec succès."
-                : string.Join(" | ", result.Errors.Select(e => e.Description));
+            if (result.Succeeded)
+            {
+                await ReplaceRolePrivilegesAsync(role.Id, model.SelectedPrivileges);
+                TempData["Success"] = "Rôle et privilèges associés modifiés avec succès.";
+            }
+            else
+            {
+                TempData["Error"] = string.Join(" | ", result.Errors.Select(e => e.Description));
+            }
 
             return RedirectToAction(nameof(Admin));
         }
@@ -288,19 +310,8 @@ namespace InvestissementsPublics.Starter.Web.Controllers
                 return RedirectToAction(nameof(Admin));
             }
 
-            var existing = _context.RolePrivileges.Where(x => x.RoleId == model.RoleIdForPrivileges);
-            _context.RolePrivileges.RemoveRange(existing);
+            await ReplaceRolePrivilegesAsync(model.RoleIdForPrivileges, model.SelectedPrivileges);
 
-            foreach (var privilegeId in model.SelectedPrivileges.Distinct())
-            {
-                _context.RolePrivileges.Add(new RolePrivilege
-                {
-                    RoleId = model.RoleIdForPrivileges,
-                    IdPrivilege = privilegeId
-                });
-            }
-
-            await _context.SaveChangesAsync();
             TempData["Success"] = "Privilèges du rôle mis à jour.";
 
             return RedirectToAction(nameof(Admin));
@@ -317,10 +328,70 @@ namespace InvestissementsPublics.Starter.Web.Controllers
                 Users = await _userManager.Users.AsNoTracking().OrderBy(u => u.UserName).ToListAsync(),
                 Roles = await _roleManager.Roles.AsNoTracking().OrderBy(r => r.Name).ToListAsync(),
                 Privileges = await _context.Privileges.AsNoTracking().OrderBy(p => p.NomPrivilege).ToListAsync(),
-                SelectedPrivileges = rolePrivileges.Select(rp => rp.IdPrivilege).Distinct().ToList(),
+                RolePrivilegeIds = rolePrivileges
+                    .GroupBy(rp => rp.RoleId)
+                    .ToDictionary(g => g.Key, g => g.Select(rp => rp.IdPrivilege).Distinct().ToList()),
             };
+
+            foreach (var user in model.Users)
+            {
+                var roleNames = await _userManager.GetRolesAsync(user);
+                model.UserRoleIds[user.Id] = model.Roles
+                    .Where(role => role.Name is not null && roleNames.Contains(role.Name))
+                    .Select(role => role.Id)
+                    .ToList();
+            }
 
             return model;
         }
+    private async Task<IdentityResult> ReplaceUserRolesAsync(ApplicationUser user, IEnumerable<string>? selectedRoleIds)
+    {
+        var selectedRoleIdList = (selectedRoleIds ?? Enumerable.Empty<string>())
+            .Where(roleId => !string.IsNullOrWhiteSpace(roleId))
+            .Distinct()
+            .ToList();
+
+        var selectedRoleNames = await _roleManager.Roles
+            .Where(role => selectedRoleIdList.Contains(role.Id) && role.Name != null)
+            .Select(role => role.Name!)
+            .ToListAsync();
+
+        var currentRoleNames = await _userManager.GetRolesAsync(user);
+        var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoleNames);
+        if (!removeResult.Succeeded)
+        {
+            return removeResult;
+        }
+
+        return selectedRoleNames.Count == 0
+            ? IdentityResult.Success
+            : await _userManager.AddToRolesAsync(user, selectedRoleNames);
     }
+
+    private async Task ReplaceRolePrivilegesAsync(string roleId, IEnumerable<int>? selectedPrivileges)
+    {
+        var selectedPrivilegeIds = (selectedPrivileges ?? Enumerable.Empty<int>())
+            .Distinct()
+            .ToList();
+
+        var existing = _context.RolePrivileges.Where(x => x.RoleId == roleId);
+        _context.RolePrivileges.RemoveRange(existing);
+
+        var validPrivilegeIds = await _context.Privileges
+            .Where(privilege => selectedPrivilegeIds.Contains(privilege.IdPrivilege))
+            .Select(privilege => privilege.IdPrivilege)
+            .ToListAsync();
+
+        foreach (var privilegeId in validPrivilegeIds.Distinct())
+        {
+            _context.RolePrivileges.Add(new RolePrivilege
+            {
+                RoleId = roleId,
+                IdPrivilege = privilegeId
+            });
+        }
+
+        await _context.SaveChangesAsync();
+    }
+}
 }

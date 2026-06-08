@@ -7,6 +7,8 @@ namespace InvestissementsPublics.Starter.Web.Models
         public List<ApplicationUser> Users { get; set; } = new();
         public List<ApplicationRole> Roles { get; set; } = new();
         public List<Privilege> Privileges { get; set; } = new();
+        public Dictionary<string, List<string>> UserRoleIds { get; set; } = new();
+        public Dictionary<string, List<int>> RolePrivilegeIds { get; set; } = new();
 
         public string NewUserName { get; set; } = string.Empty;
         public string NewUserEmail { get; set; } = string.Empty;
@@ -14,7 +16,7 @@ namespace InvestissementsPublics.Starter.Web.Models
         public string NewUserPrenom { get; set; } = string.Empty;
         public string NewUserMinistere { get; set; } = string.Empty;
         public string NewUserEntite { get; set; } = string.Empty;
-
+        public List<string> NewUserRoleIds { get; set; } = new();
         public string? EditUserId { get; set; }
         public string EditUserName { get; set; } = string.Empty;
         public string EditUserEmail { get; set; } = string.Empty;
@@ -22,6 +24,7 @@ namespace InvestissementsPublics.Starter.Web.Models
         public string EditUserPrenom { get; set; } = string.Empty;
         public string EditUserMinistere { get; set; } = string.Empty;
         public string EditUserEntite { get; set; } = string.Empty;
+        public List<string> EditUserRoleIds { get; set; } = new();
 
         public string NewRoleName { get; set; } = string.Empty;
         public string? EditRoleId { get; set; }

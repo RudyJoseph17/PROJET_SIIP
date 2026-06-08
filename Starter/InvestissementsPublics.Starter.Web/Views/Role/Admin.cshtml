@@ -18,7 +18,7 @@
 <div class="row g-4">
     <div class="col-12">
         <div class="card shadow-sm">
-            <div class="card-header"><strong>Utilisateurs</strong></div>
+            <div class="card-header"><strong>Utilisateurs et rôles</strong></div>
             <div class="card-body">
                 <h5>Ajouter un utilisateur</h5>
                 <form asp-action="CreateUser" method="post" class="row g-2 mb-4">
@@ -28,6 +28,15 @@
                     </div>
                     <div class="col-md-3">
                         <input asp-for="NewUserEmail" class="form-control" placeholder="Email" required />
+                    </div>
+                    <div class="col-md-3">
+                        <select asp-for="NewUserRoleIds" class="form-select" multiple size="3" aria-label="Rôles du nouvel utilisateur">
+                            @foreach (var role in Model.Roles)
+                            {
+                                <option value="@role.Id">@role.Name</option>
+                            }
+                        </select>
+                        <div class="form-text">Maintenez Ctrl pour sélectionner plusieurs rôles.</div>
                     </div>
                     <div class="col-md-12">
                         <div class="form-text">
@@ -61,36 +70,49 @@
                                 <th>Prénom</th>
                                 <th>Ministère</th>
                                 <th>Entité</th>
+                                <th>Rôles</th>
                                 <th style="width: 240px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var user in Model.Users)
                             {
+                                var userRoleIds = Model.UserRoleIds.TryGetValue(user.Id, out var assignedRoles)
+                                ? assignedRoles
+                                : new List<string>();
+
                                 <tr>
-                                    <td colspan="7">
+                                    <td colspan="8">
                                         <form asp-action="UpdateUser" method="post" class="row g-2 align-items-center">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="EditUserId" value="@user.Id" />
                                             <div class="col-md-2">
                                                 <input name="EditUserName" class="form-control form-control-sm" value="@user.UserName" required />
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-2">
                                                 <input name="EditUserEmail" class="form-control form-control-sm" value="@user.Email" required />
                                             </div>
-                                            <div class="col-md-2">
+                                            <div class="col-md-1">
                                                 <input name="EditUserNom" class="form-control form-control-sm" value="@user.Nom" />
                                             </div>
-                                            <div class="col-md-2">
+                                            <div class="col-md-1">
                                                 <input name="EditUserPrenom" class="form-control form-control-sm" value="@user.Prenom" />
                                             </div>
                                             <div class="col-md-2">
                                                 <input name="EditUserMinistere" class="form-control form-control-sm" value="@user.Ministere" />
                                             </div>
-                                            <div class="col-md-2">
+                                            <div class="col-md-1">
                                                 <input name="EditUserEntite" class="form-control form-control-sm" value="@user.Entite" />
                                             </div>
-                                            <div class="col-md-3 d-flex gap-2">
+                                            <div class="col-md-2">
+                                                <select name="EditUserRoleIds" class="form-select form-select-sm" multiple size="3" aria-label="Rôles de @user.UserName">
+                                                    @foreach (var role in Model.Roles)
+                                                    {
+                                                        <option value="@role.Id" selected="@userRoleIds.Contains(role.Id)">@role.Name</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                            <div class="col-md-1 d-flex gap-2 flex-wrap">
                                                 <button class="btn btn-sm btn-outline-primary" type="submit">Modifier</button>
                                                 <button class="btn btn-sm btn-outline-danger"
                                                         type="submit"
@@ -113,157 +135,142 @@
         </div>
     </div>
 
-    <div class="col-lg-6">
+    <div class="col-12">
         <div class="card shadow-sm h-100">
-            <div class="card-header"><strong>Rôles</strong></div>
+            <div class="card-header"><strong>Rôles et privilèges associés</strong></div>
             <div class="card-body">
                 <h5>Ajouter un rôle</h5>
                 <form asp-action="CreateRole" method="post" class="row g-2 mb-4">
                     @Html.AntiForgeryToken()
-                    <div class="col-8">
+                    <div class="col-md-8">
                         <input asp-for="NewRoleName" class="form-control" placeholder="Nom du rôle" required />
                     </div>
-                    <div class="col-4 text-end">
+                    <div class="col-md-4 text-end">
                         <button class="btn btn-primary" type="submit">Ajouter</button>
                     </div>
                 </form>
 
-                <table class="table table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Nom</th>
-                            <th style="width: 180px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var role in Model.Roles)
-                        {
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
                             <tr>
-                                <td colspan="2">
-                                    <form asp-action="UpdateRole" method="post" class="row g-2 align-items-center">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="EditRoleId" value="@role.Id" />
-                                        <div class="col-md-7">
-                                            <input name="EditRoleName" class="form-control form-control-sm" value="@role.Name" required />
-                                        </div>
-                                        <div class="col-md-5 d-flex gap-2">
-                                            <button class="btn btn-sm btn-outline-primary" type="submit">Modifier</button>
-                                            <button class="btn btn-sm btn-outline-danger"
-                                                    type="submit"
-                                                    formaction="@Url.Action("DeleteRole", "Role")"
-                                                    formmethod="post"
-                                                    name="roleId"
-                                                    value="@role.Id"
-                                                    onclick="return confirm('Supprimer ce rôle ?');">
-                                                Supprimer
-                                            </button>
-                                        </div>
-                                    </form>
-                                </td>
+                                <th>Nom</th>
+                                <th>Privilèges associés</th>
+                                <th style="width: 240px;">Actions</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+                        </thead>
+                        <tbody>
+                            @foreach (var role in Model.Roles)
+                            {
+                                var rolePrivilegeIds = Model.RolePrivilegeIds.TryGetValue(role.Id, out var assignedPrivileges)
+                                ? assignedPrivileges
+                                : new List<int>();
 
-    <div class="col-lg-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header"><strong>Privilèges</strong></div>
-            <div class="card-body">
-                <h5>Ajouter un privilège</h5>
-                <form asp-action="CreatePrivilege" method="post" class="row g-2 mb-4">
-                    @Html.AntiForgeryToken()
-                    <div class="col-5">
-                        <input asp-for="NewPrivilegeName" class="form-control" placeholder="Nom du privilège" required />
-                    </div>
-                    <div class="col-5">
-                        <input asp-for="NewPrivilegeDescription" class="form-control" placeholder="Description" />
-                    </div>
-                    <div class="col-2 text-end">
-                        <button class="btn btn-primary" type="submit">Ajouter</button>
-                    </div>
-                </form>
-
-                <table class="table table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Nom</th>
-                            <th>Description</th>
-                            <th style="width: 200px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var privilege in Model.Privileges)
-                        {
-                            <tr>
-                                <td colspan="3">
-                                    <form asp-action="UpdatePrivilege" method="post" class="row g-2 align-items-center">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="EditPrivilegeId" value="@privilege.IdPrivilege" />
-                                        <div class="col-md-4">
-                                            <input name="EditPrivilegeName" class="form-control form-control-sm" value="@privilege.NomPrivilege" required />
-                                        </div>
-                                        <div class="col-md-4">
-                                            <input name="EditPrivilegeDescription" class="form-control form-control-sm" value="@privilege.DescriptionPrivilege" />
-                                        </div>
-                                        <div class="col-md-4 d-flex gap-2">
-                                            <button class="btn btn-sm btn-outline-primary" type="submit">Modifier</button>
-                                            <button class="btn btn-sm btn-outline-danger"
-                                                    type="submit"
-                                                    formaction="@Url.Action("DeletePrivilege", "Role")"
-                                                    formmethod="post"
-                                                    name="privilegeId"
-                                                    value="@privilege.IdPrivilege"
-                                                    onclick="return confirm('Supprimer ce privilège ?');">
-                                                Supprimer
-                                            </button>
-                                        </div>
-                                    </form>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                                <tr>
+                                    <td colspan="3">
+                                        <form asp-action="UpdateRole" method="post" class="row g-2 align-items-center">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="EditRoleId" value="@role.Id" />
+                                            <div class="col-md-3">
+                                                <input name="EditRoleName" class="form-control form-control-sm" value="@role.Name" required />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="border rounded p-2" style="max-height: 150px; overflow:auto;">
+                                                    @foreach (var privilege in Model.Privileges)
+                                                    {
+                                                        var checkboxId = $"role_{role.Id}_priv_{privilege.IdPrivilege}";
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" name="SelectedPrivileges" value="@privilege.IdPrivilege" id="@checkboxId" checked="@rolePrivilegeIds.Contains(privilege.IdPrivilege)" />
+                                                            <label class="form-check-label" for="@checkboxId">
+                                                                <strong>@privilege.NomPrivilege</strong> - @privilege.DescriptionPrivilege
+                                                            </label>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 d-flex gap-2 flex-wrap">
+                                                <button class="btn btn-sm btn-outline-primary" type="submit">Modifier</button>
+                                                <button class="btn btn-sm btn-outline-danger"
+                                                        type="submit"
+                                                        formaction="@Url.Action("DeleteRole", "Role")"
+                                                        formmethod="post"
+                                                        name="roleId"
+                                                        value="@role.Id"
+                                                        onclick="return confirm('Supprimer ce rôle ?');">
+                                                    Supprimer
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="col-12">
         <div class="card shadow-sm">
-            <div class="card-header"><strong>Affectation des privilèges aux rôles</strong></div>
+            <div class="card-header"><strong>Privilèges</strong></div>
             <div class="card-body">
-                <form asp-action="UpdateRolePrivileges" method="post" class="row g-3">
+                <h5>Ajouter un privilège</h5>
+                <form asp-action="CreatePrivilege" method="post" class="row g-2 mb-4">
                     @Html.AntiForgeryToken()
-                    <div class="col-md-4">
-                        <label class="form-label">Rôle</label>
-                        <select name="RoleIdForPrivileges" class="form-select" required>
-                            <option value="">-- Choisir un rôle --</option>
-                            @foreach (var role in Model.Roles)
-                            {
-                                <option value="@role.Id">@role.Name</option>
-                            }
-                        </select>
+                    <div class="col-md-5">
+                        <input asp-for="NewPrivilegeName" class="form-control" placeholder="Nom du privilège" required />
                     </div>
-                    <div class="col-md-8">
-                        <label class="form-label">Privilèges</label>
-                        <div class="border rounded p-3" style="max-height: 240px; overflow:auto;">
-                            @foreach (var privilege in Model.Privileges)
-                            {
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="SelectedPrivileges" value="@privilege.IdPrivilege" id="priv_@privilege.IdPrivilege" />
-                                    <label class="form-check-label" for="priv_@privilege.IdPrivilege">
-                                        <strong>@privilege.NomPrivilege</strong> - @privilege.DescriptionPrivilege
-                                    </label>
-                                </div>
-                            }
-                        </div>
+                    <div class="col-md-5">
+                        <input asp-for="NewPrivilegeDescription" class="form-control" placeholder="Description" />
                     </div>
-                    <div class="col-12 text-end">
-                        <button class="btn btn-success" type="submit">Enregistrer l'affectation</button>
+                    <div class="col-md-2 text-end">
+                        <button class="btn btn-primary" type="submit">Ajouter</button>
                     </div>
                 </form>
+
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Description</th>
+                                <th style="width: 200px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var privilege in Model.Privileges)
+                            {
+                                <tr>
+                                    <td colspan="3">
+                                        <form asp-action="UpdatePrivilege" method="post" class="row g-2 align-items-center">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="EditPrivilegeId" value="@privilege.IdPrivilege" />
+                                            <div class="col-md-4">
+                                                <input name="EditPrivilegeName" class="form-control form-control-sm" value="@privilege.NomPrivilege" required />
+                                            </div>
+                                            <div class="col-md-5">
+                                                <input name="EditPrivilegeDescription" class="form-control form-control-sm" value="@privilege.DescriptionPrivilege" />
+                                            </div>
+                                            <div class="col-md-3 d-flex gap-2">
+                                                <button class="btn btn-sm btn-outline-primary" type="submit">Modifier</button>
+                                                <button class="btn btn-sm btn-outline-danger"
+                                                        type="submit"
+                                                        formaction="@Url.Action("DeletePrivilege", "Role")"
+                                                        formmethod="post"
+                                                        name="privilegeId"
+                                                        value="@privilege.IdPrivilege"
+                                                        onclick="return confirm('Supprimer ce privilège ?');">
+                                                    Supprimer
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
