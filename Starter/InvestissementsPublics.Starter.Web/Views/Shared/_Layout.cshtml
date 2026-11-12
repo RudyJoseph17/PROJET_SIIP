@@ -1,54 +1,95 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@*
+    Layout principal SIIP — basé sur le thème SB Admin 2 (Bootstrap 4.6, MIT).
+    Utilisé par le Starter ET par les modules (Areas) via leur _ViewStart :
+        Layout = "/Views/Shared/_Layout.cshtml";
+
+    Sections disponibles pour les vues :
+        @section Styles  { ... }   -> CSS spécifique à la page
+        @section Scripts { ... }   -> JS spécifique à la page
+    ViewData utiles :
+        ViewData["Title"]        -> titre de la page (onglet + en-tête)
+        ViewData["Subtitle"]     -> sous-titre facultatif sous l'en-tête
+        ViewData["HideHeading"]  -> true pour masquer l'en-tête automatique
+*@
+<!DOCTYPE html>
+<html lang="fr">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - InvestissementsPublics.Starter.Web</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>@ViewData["Title"] - SIIP</title>
+    <link rel="icon" href="~/favicon.ico" />
+
+    <!-- Polices et icônes -->
+    <link rel="stylesheet" href="~/vendor/fontawesome-free/css/all.min.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:300,400,600,700,800&display=swap" />
+
+    <!-- Thème SB Admin 2 (inclut Bootstrap 4.6) -->
+    <link rel="stylesheet" href="~/vendor/sb-admin-2/css/sb-admin-2.min.css" />
+    <link rel="stylesheet" href="~/vendor/datatables/dataTables.bootstrap4.min.css" />
+
+    <!-- Surcharges propres au projet (toujours en dernier) -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/InvestissementsPublics.Starter.Web.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">InvestissementsPublics.Starter.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Role" asp-action="Admin">Administration</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Role" asp-action="Admin">Administration</a>
-                        </li>
-                    </ul>
+<body id="page-top">
+
+    <div id="wrapper">
+
+        <partial name="_Sidebar" />
+
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+
+                <partial name="_Topbar" />
+
+                <div class="container-fluid">
+                    @if (ViewData["HideHeading"] is not true && ViewData["Title"] is not null)
+                    {
+                        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                            <div>
+                                <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+                                @if (ViewData["Subtitle"] is not null)
+                                {
+                                    <p class="mb-0 small text-muted">@ViewData["Subtitle"]</p>
+                                }
+                            </div>
+                            @await RenderSectionAsync("PageActions", required: false)
+                        </div>
+                    }
+
+                    <partial name="_Alerts" />
+
+                    <main role="main">
+                        @RenderBody()
+                    </main>
                 </div>
+
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>&copy; @DateTime.Now.Year &mdash; SIIP &middot; Système d'Information des Investissements Publics</span>
+                    </div>
+                </div>
+            </footer>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - InvestissementsPublics.Starter.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
+    <a class="scroll-to-top rounded" href="#page-top" aria-label="Haut de page">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <partial name="_LogoutModal" />
+
+    <!-- JS : jQuery 3.6 (wwwroot/lib) + Bootstrap 4.6 + plugins du thème -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/vendor/bootstrap4/js/bootstrap.bundle.min.js"></script>
+    <script src="~/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="~/vendor/sb-admin-2/js/sb-admin-2.min.js"></script>
+    <script src="~/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/vendor/datatables/dataTables.bootstrap4.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

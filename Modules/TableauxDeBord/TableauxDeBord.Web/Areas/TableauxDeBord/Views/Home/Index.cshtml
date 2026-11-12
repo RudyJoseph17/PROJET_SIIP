@@ -1,25 +1,162 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Tableau de bord";
+    ViewData["Subtitle"] = "Vue d'ensemble du portefeuille d'investissements publics";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@section PageActions {
+    <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+        <i class="fas fa-download fa-sm text-white-50 mr-1"></i> Exporter
+    </a>
+}
+
+<div class="alert alert-info small py-2">
+    <i class="fas fa-info-circle mr-1"></i>
+    Données de démonstration : à remplacer par un ViewModel alimenté par TableauxDeBord.Application.
 </div>
 
-<div class="row mt-4">
-
-    <div class="col-md-4">
-        <div class="card shadow-sm">
+<!-- Indicateurs clés -->
+<div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
             <div class="card-body">
-                <h5>Gestion des rôles</h5>
-                <p>Créer et gérer les rôles utilisateurs</p>
-
-                <a asp-area="Starter" asp-controller="Role" asp-action="Admin" class="btn btn-primary">
-                    Accéder
-                </a>
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Projets en banque</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">248</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-folder-open fa-2x text-gray-300"></i></div>
+                </div>
             </div>
         </div>
     </div>
 
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Budget programmé</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">12,45 Mds HTG</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-coins fa-2x text-gray-300"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Taux d'exécution</div>
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto"><div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">57 %</div></div>
+                            <div class="col">
+                                <div class="progress progress-sm mr-2">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: 57%"
+                                         aria-valuenow="57" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-clipboard-list fa-2x text-gray-300"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Projets en retard</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Graphiques -->
+<div class="row">
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">Décaissements mensuels (millions HTG)</div>
+            <div class="card-body">
+                <div class="chart-area"><canvas id="chartDecaissements"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">Projets par statut</div>
+            <div class="card-body">
+                <div class="chart-pie"><canvas id="chartStatuts"></canvas></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tableau -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">Projets récents</div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover datatable" width="100%" data-order='[[0,"desc"]]'>
+                <thead>
+                    <tr><th>Code</th><th>Intitulé</th><th>Ministère</th><th>Statut</th><th class="text-right">Coût (HTG)</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>PIP-2026-014</td><td>Réhabilitation route départementale</td><td>MTPTC</td><td><span class="badge badge-success">En exécution</span></td><td class="text-right">850 000 000</td></tr>
+                    <tr><td>PIP-2026-013</td><td>Construction d'écoles fondamentales</td><td>MENFP</td><td><span class="badge badge-info">Programmé</span></td><td class="text-right">420 000 000</td></tr>
+                    <tr><td>PIP-2026-012</td><td>Adduction d'eau potable</td><td>DINEPA</td><td><span class="badge badge-warning">En évaluation</span></td><td class="text-right">310 000 000</td></tr>
+                    <tr><td>PIP-2026-011</td><td>Centre de santé communautaire</td><td>MSPP</td><td><span class="badge badge-secondary">Idée de projet</span></td><td class="text-right">95 000 000</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/vendor/chart.js/Chart.min.js"></script>
+    <script>
+        (function () {
+            var c = window.SIIP.colors;
+            Chart.defaults.global.defaultFontFamily = 'Nunito, -apple-system, system-ui, "Segoe UI", Roboto, Arial, sans-serif';
+            Chart.defaults.global.defaultFontColor = '#858796';
+
+
+            new Chart(document.getElementById('chartDecaissements'), {
+                type: 'line',
+                data: {
+                    labels: ['Oct', 'Nov', 'Déc', 'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept'],
+                    datasets: [
+                        { label: 'Prévu',    data: [600, 650, 900, 500, 700, 820, 760, 880, 950, 700, 640, 1100], borderColor: c.secondary, borderDash: [4, 4], fill: false, pointRadius: 0 },
+                        { label: 'Décaissé', data: [420, 510, 780, 390, 610, 700, 655, 720, null, null, null, null], borderColor: c.primary, backgroundColor: 'rgba(31,78,140,0.08)', pointRadius: 3 }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    legend: { position: 'bottom' },
+                    scales: { yAxes: [{ ticks: { beginAtZero: true }, gridLines: { color: '#eaecf4', zeroLineColor: '#eaecf4' } }],
+                              xAxes: [{ gridLines: { display: false } }] },
+                    tooltips: { mode: 'index', intersect: false }
+                }
+            });
+
+            new Chart(document.getElementById('chartStatuts'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Idée', 'Évaluation', 'Programmé', 'Exécution', 'Clôturé'],
+                    datasets: [{ data: [62, 48, 55, 71, 12], backgroundColor: [c.secondary, c.warning, c.info, c.success, c.primary], borderWidth: 2 }]
+                },
+                options: { maintainAspectRatio: false, cutoutPercentage: 70, legend: { position: 'bottom' } }
+            });
+        })();
+    </script>
+}

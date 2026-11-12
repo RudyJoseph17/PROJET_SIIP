@@ -85,6 +85,17 @@ namespace InvestissementsPublics.Starter.Web.Controllers
         }
 
         // ======================
+        // POST: Home/Logout
+        // ======================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction(nameof(Index), "Home", new { area = "" });
+        }
+
+        // ======================
         // Page sécurisée (exemple)
         // ======================
         public IActionResult Privacy()

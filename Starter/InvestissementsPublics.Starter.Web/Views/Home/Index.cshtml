@@ -1,25 +1,59 @@
-﻿@* @page *@
-@model InvestissementsPublics.Starter.Web.Models.LoginModel
-
+﻿@model InvestissementsPublics.Starter.Web.Models.LoginModel
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Connexion";
+    Layout = "_LayoutAuth";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="card o-hidden border-0 shadow-lg my-5">
+    <div class="card-body p-0">
+        <div class="row">
+            <div class="col-lg-6 d-none d-lg-flex auth-side">
+                <div class="auth-side-content">
+                    <i class="fas fa-landmark fa-3x mb-4"></i>
+                    <h2 class="h4 font-weight-bold">SIIP</h2>
+                    <p class="mb-0">Système d'Information des Investissements Publics</p>
+                    <ul class="list-unstyled small mt-4 mb-0">
+                        <li><i class="fas fa-folder-open fa-fw mr-2"></i>Banque de projets</li>
+                        <li><i class="fas fa-calendar-alt fa-fw mr-2"></i>Programmation</li>
+                        <li><i class="fas fa-tasks fa-fw mr-2"></i>Suivi &amp; évaluation</li>
+                        <li><i class="fas fa-chart-pie fa-fw mr-2"></i>Tableaux de bord</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="p-5">
+                    <div class="text-center">
+                        <h1 class="h4 text-gray-900 mb-4">Connexion</h1>
+                    </div>
+
+                    <div asp-validation-summary="All" class="text-danger small mb-3"></div>
+
+                    <form asp-action="Index" method="post" class="user">
+                        @Html.AntiForgeryToken()
+                        <div class="form-group">
+                            <input asp-for="UserName" class="form-control form-control-user"
+                                   placeholder="Nom d'utilisateur" autocomplete="username" autofocus required />
+                        </div>
+                        <div class="form-group">
+                            <input asp-for="Password" type="password" class="form-control form-control-user"
+                                   placeholder="Mot de passe" autocomplete="current-password" required />
+                        </div>
+                        <div class="form-group">
+                            <div class="custom-control custom-checkbox small">
+                                <input asp-for="RememberMe" class="custom-control-input" />
+                                <label class="custom-control-label" asp-for="RememberMe">Se souvenir de moi</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-user btn-block">
+                            Se connecter
+                        </button>
+                    </form>
+                    <hr />
+                    <div class="text-center small text-muted">
+                        Mot de passe oublié ? Contactez l'administrateur du système.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-
-
-<h2>Connexion</h2>
-
-<form asp-action="Index" method="post">
-    @Html.AntiForgeryToken()
-
-    <input asp-for="UserName" />
-    <input asp-for="Password" type="password" />
-
-    <button type="submit">Login</button>
-
-    <div asp-validation-summary="All"></div>
-</form>
