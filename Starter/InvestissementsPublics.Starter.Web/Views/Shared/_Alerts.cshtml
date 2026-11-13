@@ -1,0 +1,26 @@
+@*
+    Messages flash centralisés : dans un contrôleur,
+        TempData["Success"] = "...";  TempData["Error"] = "...";
+        TempData["Warning"] = "...";  TempData["Info"]  = "...";
+*@
+@{
+    var alerts = new (string Key, string Css, string Icon)[]
+    {
+        ("Success", "success", "fa-check-circle"),
+        ("Error",   "danger",  "fa-exclamation-triangle"),
+        ("Warning", "warning", "fa-exclamation-circle"),
+        ("Info",    "info",    "fa-info-circle"),
+    };
+}
+@foreach (var a in alerts)
+{
+    if (TempData[a.Key] is string msg && !string.IsNullOrWhiteSpace(msg))
+    {
+        <div class="alert alert-@a.Css alert-dismissible fade show shadow-sm" role="alert" data-autohide="@(a.Css == "success" ? "true" : "false")">
+            <i class="fas @a.Icon mr-2"></i>@msg
+            <button type="button" class="close" data-dismiss="alert" aria-label="Fermer">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+}

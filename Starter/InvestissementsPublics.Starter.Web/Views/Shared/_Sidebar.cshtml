@@ -1,0 +1,97 @@
+@*
+    Menu latéral. Pour ajouter un module : ajouter une entrée dans "modules" ci-dessous.
+    Un module dont l'Area n'est pas encore branchée dans Program.cs (AddApplicationPart)
+    s'affiche grisé avec une icône horloge.
+*@
+@inject Microsoft.AspNetCore.Mvc.Infrastructure.IActionDescriptorCollectionProvider ActionProvider
+@{
+    // Areas réellement chargées (modules référencés via AddApplicationPart)
+    var registeredAreas = ActionProvider.ActionDescriptors.Items
+        .Select(d => d.RouteValues.TryGetValue("area", out var a) ? a : null)
+        .Where(a => !string.IsNullOrEmpty(a))
+        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+    string? AreaUrl(string area) =>
+        registeredAreas.Contains(area) ? Url.Action("Index", "Home", new { area }) : null;
+
+    var currentArea = ViewContext.RouteData.Values["area"]?.ToString() ?? "";
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+
+    string Active(string area, string? controller = null) =>
+        string.Equals(currentArea, area, StringComparison.OrdinalIgnoreCase)
+        && (controller is null || string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase))
+            ? "active" : "";
+
+    var modules = new[]
+    {
+        new { Area = "BanqueProjet",    Label = "Banque de projets",     Icon = "fa-folder-open" },
+        new { Area = "Programmation",   Label = "Programmation",         Icon = "fa-calendar-alt" },
+        new { Area = "SuiviEvaluation", Label = "Suivi & Évaluation",    Icon = "fa-tasks" },
+    };
+
+    var dashboardUrl = AreaUrl("TableauxDeBord");
+    var isAdmin = User.IsInRole("Admin") || User.IsInRole("Gestionnaire systeme");
+}
+
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="@(dashboardUrl ?? Url.Content("~/"))">
+        <div class="sidebar-brand-icon">
+            <i class="fas fa-landmark"></i>
+        </div>
+        <div class="sidebar-brand-text mx-3">SIIP</div>
+    </a>
+
+    <hr class="sidebar-divider my-0" />
+
+    <li class="nav-item @Active("TableauxDeBord")">
+        <a class="nav-link" href="@(dashboardUrl ?? "#")">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Tableau de bord</span>
+        </a>
+    </li>
+
+    <hr class="sidebar-divider" />
+    <div class="sidebar-heading">Modules</div>
+
+    @foreach (var m in modules)
+    {
+        var url = AreaUrl(m.Area);
+        <li class="nav-item @Active(m.Area) @(url is null ? "disabled" : "")">
+            <a class="nav-link" href="@(url ?? "#")" aria-disabled="@(url is null ? "true" : null)" tabindex="@(url is null ? "-1" : null)">
+                <i class="fas fa-fw @m.Icon"></i>
+                <span>@m.Label</span>
+                @if (url is null)
+                {
+                    <i class="fas fa-clock badge-soon" title="Module bientôt disponible" aria-label="bientôt disponible"></i>
+                }
+            </a>
+        </li>
+    }
+
+    @if (isAdmin)
+    {
+        <hr class="sidebar-divider" />
+        <div class="sidebar-heading">Administration</div>
+
+        <li class="nav-item @Active("", "Role")">
+            <a class="nav-link @(Active("", "Role") == "" ? "collapsed" : "")" href="#" data-toggle="collapse" data-target="#collapseAdmin"
+               aria-expanded="@(Active("", "Role") != "" ? "true" : "false")" aria-controls="collapseAdmin">
+                <i class="fas fa-fw fa-users-cog"></i>
+                <span>Sécurité</span>
+            </a>
+            <div id="collapseAdmin" class="collapse @(Active("", "Role") != "" ? "show" : "")" data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <h6 class="collapse-header">Gestion des accès</h6>
+                    <a class="collapse-item" asp-area="" asp-controller="Role" asp-action="Admin">Utilisateurs &amp; rôles</a>
+                    <a class="collapse-item" asp-area="" asp-controller="Role" asp-action="Admin" asp-fragment="privileges">Privilèges</a>
+                </div>
+            </div>
+        </li>
+    }
+
+    <hr class="sidebar-divider d-none d-md-block" />
+
+    <div class="text-center d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle" aria-label="Réduire le menu"></button>
+    </div>
+</ul>

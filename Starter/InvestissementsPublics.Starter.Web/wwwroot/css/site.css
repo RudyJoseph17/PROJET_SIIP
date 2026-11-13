@@ -1,22 +1,79 @@
-html {
-  font-size: 14px;
+/* ==========================================================================
+   SIIP — surcharges du thème SB Admin 2
+   Chargé APRÈS sb-admin-2.min.css : ne modifier que ce fichier, jamais le vendor.
+   ========================================================================== */
+
+/* 1. Palette du projet ------------------------------------------------------
+   Changer ces variables suffit pour adapter les couleurs institutionnelles. */
+:root {
+  --siip-primary: #1f4e8c;        /* bleu institutionnel */
+  --siip-primary-dark: #163a69;
+  --siip-primary-light: #3a6fb8;
+  --siip-accent: #d4a017;         /* or / accent */
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+.bg-gradient-primary {
+  background-color: var(--siip-primary);
+  background-image: linear-gradient(180deg, var(--siip-primary) 10%, var(--siip-primary-dark) 100%);
+}
+.btn-primary { background-color: var(--siip-primary); border-color: var(--siip-primary); }
+.btn-primary:hover, .btn-primary:focus { background-color: var(--siip-primary-dark); border-color: var(--siip-primary-dark); }
+.btn-outline-primary { color: var(--siip-primary); border-color: var(--siip-primary); }
+.btn-outline-primary:hover { background-color: var(--siip-primary); border-color: var(--siip-primary); }
+.text-primary { color: var(--siip-primary) !important; }
+.border-left-primary { border-left-color: var(--siip-primary) !important; }
+a { color: var(--siip-primary-light); }
+.page-item.active .page-link { background-color: var(--siip-primary); border-color: var(--siip-primary); }
+.sidebar .nav-item .collapse .collapse-inner .collapse-item.active,
+.sidebar .nav-item .collapsing .collapse-inner .collapse-item.active { color: var(--siip-primary); }
+
+/* 2. Sidebar ---------------------------------------------------------------- */
+.sidebar .sidebar-brand-icon { color: var(--siip-accent); }
+.sidebar .nav-item.disabled .nav-link { opacity: .55; pointer-events: none; }
+.sidebar .nav-item .nav-link .badge-soon { float: right; margin-top: .2rem; font-size: .7rem; opacity: .8; }
+.sidebar.toggled .badge-soon { display: none; }
+@media (max-width: 767.98px) { .sidebar .badge-soon { display: none; } }
+
+/* 3. Topbar ----------------------------------------------------------------- */
+.avatar-initials {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2rem; height: 2rem; border-radius: 50%;
+  background: var(--siip-primary); color: #fff; font-size: .8rem; font-weight: 700;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+/* 4. Page de connexion ------------------------------------------------------ */
+.auth-side {
+  align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--siip-primary-light), var(--siip-primary-dark));
+  color: #fff;
 }
+.auth-side-content { padding: 3rem; }
+.auth-side li { padding: .25rem 0; opacity: .9; }
 
-html {
-  position: relative;
-  min-height: 100%;
-}
+/* 5. Composants ------------------------------------------------------------- */
+.card-header { font-weight: 700; color: var(--siip-primary); }
+.table thead th { border-top: 0; font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; color: #5a5c69; }
+.chart-area, .chart-pie { position: relative; height: 18rem; }
 
-body {
-  margin-bottom: 60px;
+/* 6. Compatibilité Bootstrap 5 -> 4 -----------------------------------------
+   Les vues existantes (Role/Admin, ChangePassword…) ont été écrites avec des
+   classes Bootstrap 5. SB Admin 2 embarque Bootstrap 4.6 : ces règles évitent
+   de casser la mise en page en attendant leur migration. */
+.text-end   { text-align: right !important; }
+.text-start { text-align: left !important; }
+.ms-auto { margin-left: auto !important; }
+.me-auto { margin-right: auto !important; }
+.me-1 { margin-right: .25rem !important; } .me-2 { margin-right: .5rem !important; }
+.ms-1 { margin-left: .25rem !important; }  .ms-2 { margin-left: .5rem !important; }
+.gap-1 { gap: .25rem !important; } .gap-2 { gap: .5rem !important; } .gap-3 { gap: 1rem !important; }
+.row.g-2 { margin-left: -.25rem; margin-right: -.25rem; }
+.row.g-2 > * { padding: .25rem; }
+.row.g-4 { margin-left: -.75rem; margin-right: -.75rem; }
+.row.g-4 > * { padding-left: .75rem; padding-right: .75rem; margin-bottom: 1.5rem; }
+.form-label { margin-bottom: .5rem; display: inline-block; }
+.form-select {
+  display: block; width: 100%; padding: .375rem .75rem; font-size: 1rem; line-height: 1.5;
+  color: #6e707e; background-color: #fff; border: 1px solid #d1d3e2; border-radius: .35rem;
 }
+.form-select-sm { padding: .25rem .5rem; font-size: .875rem; }
+.form-select:focus { border-color: #bac8f3; outline: 0; box-shadow: 0 0 0 .2rem rgba(31, 78, 140, .25); }

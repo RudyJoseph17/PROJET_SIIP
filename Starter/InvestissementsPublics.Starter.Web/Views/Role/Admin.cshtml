@@ -4,16 +4,6 @@
     ViewData["Title"] = "Administration utilisateurs, rôles et privilèges";
 }
 
-<h2 class="mb-4">Administration utilisateurs, rôles et privilèges</h2>
-
-@if (TempData["Success"] is not null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
-@if (TempData["Error"] is not null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
 
 <div class="row g-4">
     <div class="col-12">
@@ -211,7 +201,7 @@
         </div>
     </div>
 
-    <div class="col-12">
+    <div class="col-12" id="privileges">
         <div class="card shadow-sm">
             <div class="card-header"><strong>Privilèges</strong></div>
             <div class="card-body">
