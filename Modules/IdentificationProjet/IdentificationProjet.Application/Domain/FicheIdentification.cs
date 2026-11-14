@@ -19,12 +19,26 @@ public class FicheIdentification
     // 1.2 Titre proposé (renseigné après le choix de la meilleure idée)
     public string? TitreProjet { get; set; }
 
-    // 1.3 Description du problème / besoin
+    // 1.3 Description du problème / besoin + objectif général
     public string? DescriptionProbleme { get; set; }
+    public string? ObjectifGeneral { get; set; }
+
+    // 1.4 Localisation (identifiants du référentiel + libellés)
+    public int? IdDepartement { get; set; }
+    public int? IdArrondissement { get; set; }
+    public int? IdCommune { get; set; }
+    public int? IdSection { get; set; }
+    public string? Localite { get; set; }
+    public string? Milieu { get; set; }
+    public string? Departement { get; set; }
+    public string? Arrondissement { get; set; }
+    public string? Commune { get; set; }
+    public string? SectionCommunale { get; set; }
 
     // 2. Importance du problème/besoin
-    public string? DonneesProbleme { get; set; }   // 2.1
-    public string? Consequences { get; set; }      // 2.2
+    public string? DonneesProbleme { get; set; }        // 2.1 a) données quantitatives
+    public string? DonneesQualitatives { get; set; }    // 2.1 b) données qualitatives
+    public string? Consequences { get; set; }           // 2.2
 
     // 3.5 Justification du choix de la meilleure idée
     public string? JustificationChoix { get; set; }
@@ -51,6 +65,7 @@ public class FicheIdentification
     public bool EstModifiable { get; set; }
     public int NbIdees { get; set; }
     public int NbAnnexes { get; set; }
+    public int NbGrilles { get; set; }
     public string? MeilleureIdee { get; set; }
 
     public List<IdeePossible> Idees { get; set; } = new();

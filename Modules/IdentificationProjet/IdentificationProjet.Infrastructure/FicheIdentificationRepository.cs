@@ -2,9 +2,9 @@ using System.Data;
 using IdentificationProjet.Application.Contracts;
 using IdentificationProjet.Application.Domain;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Oracle.ManagedDataAccess.Client;
 using Oracle.ManagedDataAccess.Types;
+using static IdentificationProjet.Infrastructure.PackageOracle;
 
 namespace IdentificationProjet.Infrastructure;
 
@@ -15,10 +15,14 @@ namespace IdentificationProjet.Infrastructure;
 /// </summary>
 public sealed class FicheIdentificationRepository : IFicheIdentificationRepository
 {
-    private const string Package = "PKG_IP_IDENTIFICATION.";
     private readonly IdentificationProjetDbContext _db;
+    private readonly PackageOracle _pkg;
 
-    public FicheIdentificationRepository(IdentificationProjetDbContext db) => _db = db;
+    public FicheIdentificationRepository(IdentificationProjetDbContext db)
+    {
+        _db = db;
+        _pkg = new PackageOracle(db);
+    }
 
     // ---------------------------------------------------------------- Lecture
 
@@ -53,9 +57,12 @@ public sealed class FicheIdentificationRepository : IFicheIdentificationReposito
         return fiche;
     }
 
+    public Task<List<Lieu>> ListerLieuxAsync(CancellationToken ct = default) =>
+        _db.Lieux.OrderBy(l => l.Niveau).ThenBy(l => l.IdParent).ThenBy(l => l.Ordre).ToListAsync(ct);
+
     public async Task<ContenuAnnexe?> LireContenuAnnexeAsync(int idFiche, int idAnnexe, CancellationToken ct = default)
     {
-        var conn = await ConnexionAsync(ct);
+        var conn = await _pkg.ConnexionAsync(ct);
         await using var cmd = conn.CreateCommand();
         cmd.BindByName = true;
         cmd.InitialLOBFetchSize = -1;
@@ -74,7 +81,7 @@ public sealed class FicheIdentificationRepository : IFicheIdentificationReposito
     // --------------------------------------------------------------- Écriture
 
     public Task<int> CreerAsync(string promoteurId, string promoteurNom, string? ministere, string? courriel, CancellationToken ct = default) =>
-        ExecuterAsync(async tx =>
+        _pkg.ExecuterAsync(async tx =>
         {
             await using var cmd = Proc(tx, "CREER_FICHE");
             In(cmd, "p_promoteur_id", OracleDbType.Varchar2, promoteurId);
@@ -87,9 +94,9 @@ public sealed class FicheIdentificationRepository : IFicheIdentificationReposito
         }, ct);
 
     public Task EnregistrerAsync(EnregistrementFiche s, CancellationToken ct = default) =>
-        ExecuterAsync(async tx =>
+        _pkg.ExecuterAsync(async tx =>
         {
-            // Sections 1.1, 1.3, 2.1, 2.2, 4.1
+            // Sections 1.1, 1.3, 1.4, 2.1, 2.2, 4.1
             await using (var cmd = Proc(tx, "MAJ_FICHE"))
             {
                 In(cmd, "p_id_fiche", OracleDbType.Int32, s.IdFiche);
@@ -98,7 +105,15 @@ public sealed class FicheIdentificationRepository : IFicheIdentificationReposito
                 In(cmd, "p_telephone", OracleDbType.Varchar2, s.Telephone);
                 In(cmd, "p_courriel", OracleDbType.Varchar2, s.Courriel);
                 In(cmd, "p_description_probleme", OracleDbType.Clob, s.DescriptionProbleme);
+                In(cmd, "p_objectif_general", OracleDbType.Clob, s.ObjectifGeneral);
+                In(cmd, "p_id_departement", OracleDbType.Int32, s.IdDepartement);
+                In(cmd, "p_id_arrondissement", OracleDbType.Int32, s.IdArrondissement);
+                In(cmd, "p_id_commune", OracleDbType.Int32, s.IdCommune);
+                In(cmd, "p_id_section", OracleDbType.Int32, s.IdSection);
+                In(cmd, "p_localite", OracleDbType.Varchar2, s.Localite);
+                In(cmd, "p_milieu", OracleDbType.Varchar2, s.Milieu);
                 In(cmd, "p_donnees_probleme", OracleDbType.Clob, s.DonneesProbleme);
+                In(cmd, "p_donnees_qualitatives", OracleDbType.Clob, s.DonneesQualitatives);
                 In(cmd, "p_consequences", OracleDbType.Clob, s.Consequences);
                 In(cmd, "p_conclusions", OracleDbType.Clob, s.Conclusions);
                 await cmd.ExecuteNonQueryAsync(ct);
@@ -148,7 +163,7 @@ public sealed class FicheIdentificationRepository : IFicheIdentificationReposito
         }, ct);
 
     public Task<int> AjouterAnnexeAsync(int idFiche, NouvelleAnnexe a, CancellationToken ct = default) =>
-        ExecuterAsync(async tx =>
+        _pkg.ExecuterAsync(async tx =>
         {
             await using var cmd = Proc(tx, "AJOUTER_ANNEXE");
             In(cmd, "p_id_fiche", OracleDbType.Int32, idFiche);
@@ -163,7 +178,7 @@ public sealed class FicheIdentificationRepository : IFicheIdentificationReposito
         }, ct);
 
     public Task SupprimerAnnexeAsync(int idFiche, int idAnnexe, CancellationToken ct = default) =>
-        ExecuterAsync(async tx =>
+        _pkg.ExecuterAsync(async tx =>
         {
             await using var cmd = Proc(tx, "SUPPRIMER_ANNEXE");
             In(cmd, "p_id_fiche", OracleDbType.Int32, idFiche);
@@ -173,7 +188,7 @@ public sealed class FicheIdentificationRepository : IFicheIdentificationReposito
         }, ct);
 
     public Task ChangerStatutAsync(int idFiche, string action, string? commentaire, string acteurId, string acteurNom, CancellationToken ct = default) =>
-        ExecuterAsync(async tx =>
+        _pkg.ExecuterAsync(async tx =>
         {
             await using var cmd = Proc(tx, "CHANGER_STATUT");
             In(cmd, "p_id_fiche", OracleDbType.Int32, idFiche);
@@ -186,67 +201,11 @@ public sealed class FicheIdentificationRepository : IFicheIdentificationReposito
         }, ct);
 
     public Task SupprimerAsync(int idFiche, CancellationToken ct = default) =>
-        ExecuterAsync(async tx =>
+        _pkg.ExecuterAsync(async tx =>
         {
             await using var cmd = Proc(tx, "SUPPRIMER_FICHE");
             In(cmd, "p_id_fiche", OracleDbType.Int32, idFiche);
             await cmd.ExecuteNonQueryAsync(ct);
             return 0;
         }, ct);
-
-    // ------------------------------------------------------------ Utilitaires
-
-    private async Task<OracleConnection> ConnexionAsync(CancellationToken ct)
-    {
-        var conn = (OracleConnection)_db.Database.GetDbConnection();
-        if (conn.State != ConnectionState.Open) await _db.Database.OpenConnectionAsync(ct);
-        return conn;
-    }
-
-    /// <summary>Exécute une unité de travail en transaction ; traduit les ORA-20xxx.</summary>
-    private async Task<T> ExecuterAsync<T>(Func<OracleTransaction, Task<T>> travail, CancellationToken ct)
-    {
-        await ConnexionAsync(ct);
-        await using var tx = await _db.Database.BeginTransactionAsync(ct);
-        try
-        {
-            var resultat = await travail((OracleTransaction)tx.GetDbTransaction());
-            await tx.CommitAsync(ct);
-            return resultat;
-        }
-        catch (OracleException ex) when (ex.Number is >= 20000 and <= 20999)
-        {
-            await tx.RollbackAsync(CancellationToken.None);
-            throw new RegleMetierException(ex.Number, MessageUtilisateur(ex.Message), ex);
-        }
-        catch
-        {
-            await tx.RollbackAsync(CancellationToken.None);
-            throw;
-        }
-    }
-
-    private static OracleCommand Proc(OracleTransaction tx, string procedure)
-    {
-        var cmd = tx.Connection.CreateCommand();
-        cmd.Transaction = tx;
-        cmd.CommandText = Package + procedure;
-        cmd.CommandType = CommandType.StoredProcedure;
-        cmd.BindByName = true;
-        return cmd;
-    }
-
-    private static void In(OracleCommand cmd, string nom, OracleDbType type, object? valeur)
-    {
-        if (valeur is string s && string.IsNullOrWhiteSpace(s)) valeur = null;
-        cmd.Parameters.Add(nom, type, valeur ?? DBNull.Value, ParameterDirection.Input);
-    }
-
-    /// <summary>"ORA-20003: message\nORA-06512: ..." -> "message".</summary>
-    internal static string MessageUtilisateur(string message)
-    {
-        var premiere = message.Split('\n')[0].Trim();
-        var i = premiere.IndexOf(':');
-        return premiere.StartsWith("ORA-", StringComparison.Ordinal) && i > 0 ? premiere[(i + 1)..].Trim() : premiere;
-    }
 }

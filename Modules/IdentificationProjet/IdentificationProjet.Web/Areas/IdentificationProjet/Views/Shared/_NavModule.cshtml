@@ -1,0 +1,22 @@
+@* Onglets du module : visibles pour les membres du MPCE (accès aux grilles d'analyse) *@
+@{
+    var u = ViewData["Utilisateur"] as ContexteUtilisateur;
+    var controleur = ViewContext.RouteData.Values["controller"]?.ToString();
+    var aTraiter = ViewData["GrillesATraiter"] as int?;
+}
+@if (u?.EstMpce == true)
+{
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link @(controleur == "Fiches" ? "active" : "")" asp-controller="Fiches" asp-action="Index">
+                <i class="fas fa-lightbulb mr-1"></i> Fiches d'identification
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(controleur == "Grilles" ? "active" : "")" asp-controller="Grilles" asp-action="Index">
+                <i class="fas fa-clipboard-list mr-1"></i> Grilles d'analyse (MPCE)
+                @if (aTraiter > 0) { <span class="badge badge-warning ml-1">@aTraiter</span> }
+            </a>
+        </li>
+    </ul>
+}

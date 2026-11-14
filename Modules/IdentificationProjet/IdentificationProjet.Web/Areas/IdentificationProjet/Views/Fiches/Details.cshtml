@@ -139,9 +139,20 @@
                     <dt class="col-sm-4">Adresse électronique</dt><dd class="col-sm-8">@Texte(f.Courriel)</dd>
                 </dl>
                 @{ Bloc("1.3. Description du problème à résoudre ou du besoin à satisfaire", f.DescriptionProbleme); }
+                @{ Bloc("Objectif général du projet", f.ObjectifGeneral); }
+                <h6 class="font-weight-bold text-gray-800 mt-3">1.4. Localisation du projet</h6>
+                <dl class="row small mb-0">
+                    <dt class="col-sm-4">Département</dt><dd class="col-sm-8">@Texte(f.Departement)</dd>
+                    <dt class="col-sm-4">Arrondissement</dt><dd class="col-sm-8">@Texte(f.Arrondissement)</dd>
+                    <dt class="col-sm-4">Commune</dt><dd class="col-sm-8">@Texte(f.Commune)</dd>
+                    <dt class="col-sm-4">Section communale</dt><dd class="col-sm-8">@Texte(f.SectionCommunale)</dd>
+                    <dt class="col-sm-4">Localité</dt><dd class="col-sm-8">@Texte(f.Localite)</dd>
+                    <dt class="col-sm-4">Milieu</dt><dd class="col-sm-8">@(f.Milieu switch { "URBAIN" => "Urbain", "RURAL" => "Rural", _ => "" })</dd>
+                </dl>
 
                 <h5 class="text-primary mt-4">2. Importance du problème/besoin</h5>
-                @{ Bloc("2.1. Présentation des données pour illustrer l'existence du problème/besoin", f.DonneesProbleme); }
+                @{ Bloc("2.1. Données quantitatives", f.DonneesProbleme); }
+                @{ Bloc("2.1. Données qualitatives", f.DonneesQualitatives); }
                 @{ Bloc("2.2. Conséquences probables si le problème/besoin n'est pas traité", f.Consequences); }
 
                 <h5 class="text-primary mt-4">3. Identification des idées pour traiter le problème/besoin</h5>
@@ -224,11 +235,33 @@
     <div class="col-xl-3 col-lg-4">
         <partial name="_Progression" model="f" />
 
+        @if (Model.Grilles.Count > 0)
+        {
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">Grilles d'analyse du MPCE</div>
+                <ul class="list-group list-group-flush small">
+                    @foreach (var g in Model.Grilles)
+                    {
+                        <li class="list-group-item">
+                            <a asp-controller="Grilles" asp-action="Details" asp-route-id="@g.IdGrille" class="font-weight-bold">Grille n° @g.Numero</a>
+                            <span class="badge badge-@StatutGrille.Couleur(g.Statut) float-right">@StatutGrille.Libelle(g.Statut)</span>
+                            <div class="text-muted">Reçue le @g.DateReceptionDip?.ToString("dd/MM/yyyy")</div>
+                            @if (g.Decision is not null && g.Statut == StatutGrille.Approuvee)
+                            {
+                                <div>@DecisionGrille.Libelle(g.Decision)</div>
+                            }
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+
         <div class="card shadow mb-4">
             <div class="card-header py-3">Historique</div>
             <div class="card-body">
                 <ul class="list-unstyled small mb-0 ip-historique">
-                    @foreach (var h in f.Historique.AsEnumerable().Reverse())
+                    @foreach (var h in f.Historique.AsEnumerable().Reverse()
+                                             .Where(h => ReglesAcces.VoitEtapesInternesMpce(Model.Utilisateur) || !ActionFiche.EstInterneMpce(h.Action)))
                     {
                         <li class="mb-3">
                             <div class="font-weight-bold">@ActionFiche.Libelle(h.Action)</div>

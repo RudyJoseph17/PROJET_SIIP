@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Shared.Domain.Entities;
 
@@ -15,21 +16,22 @@ namespace IdentificationProjet.Web.Areas.IdentificationProjet.Controllers;
 /// Fiche d'Identification de l'Idée de Projet : saisie par le promoteur,
 /// suivi de la progression, examen par l'UEP puis la DIP.
 /// </summary>
-[Area("IdentificationProjet")]
-[Authorize]
-public class FichesController : Controller
+public class FichesController : ModuleControllerBase
 {
     private const long TailleRequeteMax = LimitesAnnexes.TailleMaxOctets + 5 * 1024 * 1024;
     private const string CommandeSupprimerAnnexe = "supprimer-annexe-";
 
     private readonly IFicheIdentificationRepository _repo;
-    private readonly UserManager<ApplicationUser> _users;
+    private readonly IGrilleAnalyseRepository _grilles;
+    private readonly IMemoryCache _cache;
     private readonly ILogger<FichesController> _logger;
 
-    public FichesController(IFicheIdentificationRepository repo, UserManager<ApplicationUser> users, ILogger<FichesController> logger)
+    public FichesController(IFicheIdentificationRepository repo, IGrilleAnalyseRepository grilles, IMemoryCache cache,
+                            UserManager<ApplicationUser> users, ILogger<FichesController> logger) : base(users)
     {
         _repo = repo;
-        _users = users;
+        _grilles = grilles;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -41,20 +43,22 @@ public class FichesController : Controller
         var vm = new ListeFichesViewModel
         {
             MesFiches = await _repo.ListerParPromoteurAsync(u.UserId, ct),
-            EstExaminateur = u.EstUep || u.EstDip || u.EstAdmin,
+            EstExaminateur = u.EstUep || u.EstAdmin,
         };
 
-        var statuts = new List<string>();
-        if (u.EstUep || u.EstAdmin) statuts.Add(StatutFiche.SoumiseUep);
-        if (u.EstDip || u.EstAdmin) statuts.Add(StatutFiche.TransmiseDip);
-        if (statuts.Count > 0)
+        if (vm.EstExaminateur)
         {
-            // L'UEP ne voit que les fiches de son ministère ; DIP et Admin voient tout
-            var ministere = u.EstAdmin || u.EstDip ? null : u.Ministere;
-            vm.AExaminer = (await _repo.ListerParStatutsAsync(statuts, ministere, ct))
+            // L'UEP ne voit que les fiches de son ministère ; l'Admin voit tout
+            var ministere = u.EstAdmin ? null : u.Ministere;
+            vm.AExaminer = (await _repo.ListerParStatutsAsync(new[] { StatutFiche.SoumiseUep }, ministere, ct))
                 .Where(f => ReglesAcces.ActionsExamen(f, u).Count > 0)
                 .ToList();
         }
+
+        var statutsGrille = ReglesGrille.StatutsATraiter(u);
+        if (statutsGrille.Count > 0)
+            vm.GrillesATraiter = (await _grilles.ListerAsync(statutsGrille, ct))
+                .Count(g => ReglesGrille.Actions(g, u).Count > 0);
         return View(vm);
     }
 
@@ -81,6 +85,7 @@ public class FichesController : Controller
             TempData["Info"] = "Cette fiche n'est pas modifiable dans son statut actuel.";
             return RedirectToAction(nameof(Details), new { id });
         }
+        ViewData["LieuxJson"] = await LieuxJsonAsync(_repo, _cache, ct);
         return View(FicheEditViewModel.Depuis(fiche));
     }
 
@@ -148,7 +153,9 @@ public class FichesController : Controller
         var (fiche, u) = await ChargerAsync(id, ct);
         if (fiche is null) return NotFound();
         if (!ReglesAcces.PeutConsulter(fiche, u)) return Forbid();
-        return View(new DetailsFicheViewModel { Fiche = fiche, Utilisateur = u });
+        var grilles = (await _grilles.ListerParFicheAsync(id, ct))
+            .Where(g => ReglesGrille.PeutConsulter(g, fiche, u)).ToList();
+        return View(new DetailsFicheViewModel { Fiche = fiche, Utilisateur = u, Grilles = grilles });
     }
 
     [HttpGet]
@@ -224,20 +231,6 @@ public class FichesController : Controller
     private async Task<(FicheIdentification? Fiche, ContexteUtilisateur Utilisateur)> ChargerAsync(int id, CancellationToken ct) =>
         (await _repo.ObtenirAsync(id, ct), await UtilisateurAsync());
 
-    private async Task<ContexteUtilisateur> UtilisateurAsync()
-    {
-        var user = await _users.GetUserAsync(User);
-        var nom = user is null ? null : $"{user.Prenom} {user.Nom}".Trim();
-        return new ContexteUtilisateur(
-            UserId: user?.Id ?? _users.GetUserId(User) ?? "",
-            NomAffiche: string.IsNullOrWhiteSpace(nom) ? User.Identity?.Name ?? "" : nom,
-            Ministere: user?.Ministere,
-            Courriel: user?.Email,
-            EstUep: User.IsInRole(RolesIdentification.Uep),
-            EstDip: User.IsInRole(RolesIdentification.Dip),
-            EstAdmin: User.IsInRole(RolesIdentification.Admin));
-    }
-
     private async Task<NouvelleAnnexe?> LireAnnexeAsync(IFormFile fichier, string? description, ContexteUtilisateur u, int nbExistantes, CancellationToken ct)
     {
         const string cle = nameof(FicheEditViewModel.NouvelleAnnexe);
@@ -261,9 +254,10 @@ public class FichesController : Controller
                                   string.IsNullOrWhiteSpace(description) ? null : description.Trim(), u.NomAffiche);
     }
 
-    private Task<IActionResult> RevoirAsync(FicheEditViewModel model, FicheIdentification fiche)
+    private async Task<IActionResult> RevoirAsync(FicheEditViewModel model, FicheIdentification fiche)
     {
         model.Fiche = fiche;
-        return Task.FromResult<IActionResult>(View(nameof(Edit), model));
+        ViewData["LieuxJson"] = await LieuxJsonAsync(_repo, _cache, HttpContext.RequestAborted);
+        return View(nameof(Edit), model);
     }
 }

@@ -12,11 +12,22 @@
     </form>
 }
 
+@{ ViewData["GrillesATraiter"] = Model.GrillesATraiter; }
+<partial name="_NavModule" />
+
+@if (Model.GrillesATraiter > 0)
+{
+    <div class="alert alert-warning shadow-sm d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-clipboard-list mr-2"></i>@Model.GrillesATraiter grille(s) d'analyse en attente de votre action.</span>
+        <a asp-controller="Grilles" asp-action="Index" class="btn btn-sm btn-warning">Ouvrir les grilles</a>
+    </div>
+}
+
 @if (Model.EstExaminateur)
 {
     <div class="card shadow mb-4 border-left-warning">
         <div class="card-header py-3">
-            <i class="fas fa-clipboard-check mr-1"></i> Fiches à examiner
+            <i class="fas fa-clipboard-check mr-1"></i> Fiches à examiner (UEP)
             <span class="badge badge-warning ml-1">@Model.AExaminer.Count</span>
         </div>
         <div class="card-body">

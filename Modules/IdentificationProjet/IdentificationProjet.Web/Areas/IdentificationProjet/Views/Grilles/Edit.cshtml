@@ -1,0 +1,179 @@
+@model GrilleEditViewModel
+@{
+    var g = Model.Grille!;
+    ViewData["Title"] = $"Grille d'analyse — {g.CodeFiche}";
+    ViewData["Subtitle"] = $"Grille n° {g.Numero} · {StatutGrille.Libelle(g.Statut)}";
+}
+
+@section PageActions {
+    <a asp-action="Details" asp-route-id="@g.IdGrille" class="btn btn-sm btn-outline-secondary shadow-sm">
+        <i class="fas fa-eye fa-sm mr-1"></i> Aperçu
+    </a>
+}
+@section Styles { <partial name="_Styles" /> }
+
+<partial name="_NavModule" />
+
+<div class="row">
+    <div class="col-xl-9 col-lg-8">
+        <form asp-action="Edit" asp-route-id="@g.IdGrille" method="post" id="form-grille">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+            }
+
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <partial name="_EnteteDescription" model="g" />
+                    <label asp-for="CommentairesDescription" class="font-weight-bold text-gray-800">COMMENTAIRES</label>
+                    <textarea asp-for="CommentairesDescription" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+
+            @* ============================ GÉNÉRALITÉS ============================ *@
+            <div class="card shadow mb-4" id="generalites">
+                <div class="card-header py-3">Généralités</div>
+                <div class="card-body">
+                    <p class="small text-muted">Répondez par Oui ou Non à chaque question. Un commentaire est obligatoire pour chaque réponse « Non ».</p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered ip-gen mb-0">
+                            <thead class="thead-light">
+                                <tr><th>Question</th><th style="width:8.5rem">Réponse</th><th style="min-width:16rem">Commentaires</th></tr>
+                            </thead>
+                            <tbody>
+                                @for (var i = 0; i < Model.Reponses.Count; i++)
+                                {
+                                    var r = Model.Reponses[i];
+                                    <tr class="ip-reponse @(r.Reponse == "NON" ? "table-danger" : "")">
+                                        <td>
+                                            <input type="hidden" asp-for="Reponses[i].Numero" />
+                                            <label for="Reponses_@(i)__Reponse" class="mb-0">@r.Numero. @r.Question</label>
+                                        </td>
+                                        <td>
+                                            <select asp-for="Reponses[i].Reponse" class="custom-select custom-select-sm ip-oui-non">
+                                                <option value="">—</option>
+                                                <option value="OUI">Oui</option>
+                                                <option value="NON">Non</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <textarea asp-for="Reponses[i].Commentaire" class="form-control form-control-sm ip-commentaire" rows="2"
+                                                      maxlength="2000" placeholder="Obligatoire si Non" aria-label="Commentaire question @r.Numero"></textarea>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">Commentaires généraux</div>
+                <div class="card-body">
+                    <textarea asp-for="CommentairesGeneraux" class="form-control" rows="4" aria-label="Commentaires généraux"></textarea>
+                </div>
+            </div>
+
+            @* ======================== AVIS / RÉSULTAT ======================== *@
+            <div class="card shadow mb-4" id="avis">
+                <div class="card-header py-3">Avis sur la fiche d'identification de projet</div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label asp-for="Decision" class="font-weight-bold">Résultats de l'analyse</label>
+                        <select asp-for="Decision" class="custom-select" id="Decision">
+                            <option value="">— Choisir —</option>
+                            @foreach (var d in DecisionGrille.Toutes)
+                            {
+                                <option value="@d" data-statut="@StatutFiche.Libelle(DecisionGrille.StatutFicheResultant(d))">@DecisionGrille.Libelle(d)</option>
+                            }
+                        </select>
+                        <small class="form-text text-muted" id="effet-decision"></small>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label asp-for="Recommandations" class="font-weight-bold">Recommandations</label>
+                        <span class="small text-muted" id="reco-obligatoire">(obligatoires si le document doit être révisé ou est rejeté : elles sont transmises au promoteur)</span>
+                        <textarea asp-for="Recommandations" class="form-control" rows="5"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
+                    <span class="small text-muted mb-2 mb-md-0">Signature : <strong>Analyste de projet</strong> — enregistrée à la transmission.</span>
+                    <div>
+                        <button type="submit" name="commande" value="enregistrer" class="btn btn-primary">
+                            <i class="fas fa-save mr-1"></i> Enregistrer
+                        </button>
+                        <button type="submit" name="commande" value="transmettre" class="btn btn-success"
+                                onclick="return confirm('Enregistrer et transmettre la grille au Chef de Service ? Elle ne sera plus modifiable sauf renvoi.');">
+                            <i class="fas fa-paper-plane mr-1"></i> Enregistrer et transmettre au Chef de Service
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-xl-3 col-lg-4">
+        <div class="card shadow mb-4" style="position:sticky;top:1rem">
+            <div class="card-header py-3">Avancement de l'analyse</div>
+            <div class="card-body small">
+                <div class="mb-2"><span id="nb-repondues">0</span> / @Model.Reponses.Count questions répondues</div>
+                <div class="progress mb-3" style="height:.5rem"><div class="progress-bar bg-info" id="barre-reponses" style="width:0%"></div></div>
+                <div class="mb-1"><span id="nb-non">0</span> réponse(s) « Non »</div>
+                <hr />
+                <div class="font-weight-bold mb-1">Circuit de la grille</div>
+                <ol class="pl-3 mb-0">
+                    <li class="font-weight-bold text-primary">Analyste de projet</li>
+                    <li>Chef de Service</li>
+                    <li>Vu et approuvé (Directeur)</li>
+                </ol>
+                <p class="text-muted mt-2 mb-0">Le résultat de l'analyse s'applique à la fiche à l'approbation finale.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    (function () {
+        var lignes = Array.prototype.slice.call(document.querySelectorAll('tr.ip-reponse'));
+        function maj() {
+            var repondues = 0, non = 0;
+            lignes.forEach(function (tr) {
+                var v = tr.querySelector('.ip-oui-non').value;
+                var com = tr.querySelector('.ip-commentaire');
+                if (v) repondues++;
+                if (v === 'NON') non++;
+                tr.classList.toggle('table-danger', v === 'NON');
+                com.disabled = v !== 'NON';            // commentaire seulement si « Non »
+                com.required = v === 'NON';
+                com.placeholder = v === 'NON' ? 'Commentaire obligatoire' : 'Sans objet (réponse Oui)';
+            });
+            document.getElementById('nb-repondues').textContent = repondues;
+            document.getElementById('nb-non').textContent = non;
+            document.getElementById('barre-reponses').style.width = (lignes.length ? repondues * 100 / lignes.length : 0) + '%';
+        }
+        lignes.forEach(function (tr) { tr.querySelector('.ip-oui-non').addEventListener('change', maj); });
+
+        var decision = document.getElementById('Decision');
+        function majDecision() {
+            var opt = decision.options[decision.selectedIndex];
+            document.getElementById('effet-decision').textContent = opt && opt.value
+                ? 'À l\'approbation par le Directeur, la fiche passera au statut : « ' + opt.dataset.statut + ' ».' : '';
+            document.getElementById('Recommandations').required = opt && (opt.value === 'A_REVISER' || opt.value === 'REJETE');
+        }
+        decision.addEventListener('change', majDecision);
+
+        // « Enregistrer » ne bloque pas un brouillon incomplet ; seule la transmission exige tout
+        document.querySelector('button[value=enregistrer]').addEventListener('click', function () {
+            document.getElementById('form-grille').noValidate = true;
+        });
+        document.querySelector('button[value=transmettre]').addEventListener('click', function () {
+            document.getElementById('form-grille').noValidate = false;
+        });
+        maj(); majDecision();
+    })();
+    </script>
+}

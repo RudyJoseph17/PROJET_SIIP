@@ -26,6 +26,9 @@ public interface IFicheIdentificationRepository
     Task ChangerStatutAsync(int idFiche, string action, string? commentaire, string acteurId, string acteurNom, CancellationToken ct = default);
 
     Task SupprimerAsync(int idFiche, CancellationToken ct = default);
+
+    /// <summary>Référentiel géographique complet (départements → sections communales).</summary>
+    Task<List<Lieu>> ListerLieuxAsync(CancellationToken ct = default);
 }
 
 /// <summary>Données saisies dans le formulaire de la fiche.</summary>
@@ -38,9 +41,19 @@ public sealed class EnregistrementFiche
     public string? NomContact { get; init; }
     public string? Telephone { get; init; }
     public string? Courriel { get; init; }
-    // 1.3, 2.1, 2.2, 4.1
+    // 1.3
     public string? DescriptionProbleme { get; init; }
+    public string? ObjectifGeneral { get; init; }
+    // 1.4
+    public int? IdDepartement { get; init; }
+    public int? IdArrondissement { get; init; }
+    public int? IdCommune { get; init; }
+    public int? IdSection { get; init; }
+    public string? Localite { get; init; }
+    public string? Milieu { get; init; }
+    // 2.1 (quantitatives / qualitatives), 2.2, 4.1
     public string? DonneesProbleme { get; init; }
+    public string? DonneesQualitatives { get; init; }
     public string? Consequences { get; init; }
     public string? Conclusions { get; init; }
 

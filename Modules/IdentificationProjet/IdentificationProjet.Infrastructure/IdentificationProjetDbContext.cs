@@ -21,6 +21,10 @@ public class IdentificationProjetDbContext : DbContext
     public DbSet<IdeePossible> Idees => Set<IdeePossible>();
     public DbSet<AnnexeFiche> Annexes => Set<AnnexeFiche>();
     public DbSet<HistoriqueFiche> Historique => Set<HistoriqueFiche>();
+    public DbSet<Lieu> Lieux => Set<Lieu>();
+    public DbSet<GrilleAnalyse> Grilles => Set<GrilleAnalyse>();
+    public DbSet<PisteGrille> PistesGrille => Set<PisteGrille>();
+    public DbSet<ReponseGrille> ReponsesGrille => Set<ReponseGrille>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -34,6 +38,17 @@ public class IdentificationProjetDbContext : DbContext
         b.Entity<IdeePossible>().ToView("V_IP_IDEE_POSSIBLE").HasKey(x => x.IdIdee);
         b.Entity<AnnexeFiche>().ToView("V_IP_ANNEXE").HasKey(x => x.IdAnnexe);
         b.Entity<HistoriqueFiche>().ToView("V_IP_HISTORIQUE").HasKey(x => x.IdHistorique);
+        b.Entity<Lieu>().ToView("V_IP_LIEU").HasKey(x => x.IdLieu);
+
+        // Grille : les tables imbriquées PISTES et REPONSES sont dépliées par des vues
+        b.Entity<GrilleAnalyse>(e =>
+        {
+            e.ToView("V_IP_GRILLE").HasKey(x => x.IdGrille);
+            e.HasMany(x => x.Pistes).WithOne().HasForeignKey(p => p.IdGrille);
+            e.HasMany(x => x.Reponses).WithOne().HasForeignKey(r => r.IdGrille);
+        });
+        b.Entity<PisteGrille>().ToView("V_IP_GRILLE_PISTE").HasKey(x => new { x.IdGrille, x.Ordre });
+        b.Entity<ReponseGrille>().ToView("V_IP_GRILLE_REPONSE").HasKey(x => new { x.IdGrille, x.Numero });
 
         // Convention Oracle : PropriétéPascal -> COLONNE_MAJUSCULE ; booléens en NUMBER(1)
         var boolConverter = new BoolToZeroOneConverter<short>();

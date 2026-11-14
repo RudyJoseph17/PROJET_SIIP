@@ -28,9 +28,34 @@ public class FicheEditViewModel
     [Display(Name = "Description du problème à résoudre ou du besoin à satisfaire")]
     public string? DescriptionProbleme { get; set; }
 
+    [Display(Name = "Objectif général du projet")]
+    public string? ObjectifGeneral { get; set; }
+
+    // 1.4 Localisation
+    [Display(Name = "Département")]
+    public int? IdDepartement { get; set; }
+
+    [Display(Name = "Arrondissement")]
+    public int? IdArrondissement { get; set; }
+
+    [Display(Name = "Commune")]
+    public int? IdCommune { get; set; }
+
+    [Display(Name = "Section communale")]
+    public int? IdSection { get; set; }
+
+    [Display(Name = "Localité"), StringLength(200)]
+    public string? Localite { get; set; }
+
+    [Display(Name = "Milieu"), RegularExpression("URBAIN|RURAL", ErrorMessage = "Milieu invalide.")]
+    public string? Milieu { get; set; }
+
     // 2.1 / 2.2
-    [Display(Name = "Présentation des données pour illustrer l'existence du problème/besoin")]
+    [Display(Name = "Données quantitatives")]
     public string? DonneesProbleme { get; set; }
+
+    [Display(Name = "Données qualitatives")]
+    public string? DonneesQualitatives { get; set; }
 
     [Display(Name = "Conséquences probables si le problème/besoin n'est pas traité")]
     public string? Consequences { get; set; }
@@ -69,7 +94,15 @@ public class FicheEditViewModel
         Telephone = f.Telephone,
         Courriel = f.Courriel,
         DescriptionProbleme = f.DescriptionProbleme,
+        ObjectifGeneral = f.ObjectifGeneral,
+        IdDepartement = f.IdDepartement,
+        IdArrondissement = f.IdArrondissement,
+        IdCommune = f.IdCommune,
+        IdSection = f.IdSection,
+        Localite = f.Localite,
+        Milieu = f.Milieu,
         DonneesProbleme = f.DonneesProbleme,
+        DonneesQualitatives = f.DonneesQualitatives,
         Consequences = f.Consequences,
         Idees = f.Idees.Select(i => new IdeeLigneViewModel
         {
@@ -106,7 +139,15 @@ public class FicheEditViewModel
             Telephone = Telephone,
             Courriel = Courriel,
             DescriptionProbleme = DescriptionProbleme,
+            ObjectifGeneral = ObjectifGeneral,
+            IdDepartement = IdDepartement,
+            IdArrondissement = IdArrondissement,
+            IdCommune = IdCommune,
+            IdSection = IdSection,
+            Localite = Localite,
+            Milieu = Milieu,
             DonneesProbleme = DonneesProbleme,
+            DonneesQualitatives = DonneesQualitatives,
             Consequences = Consequences,
             Conclusions = Conclusions,
             Idees = lignes.Select(x => new SaisieIdee
@@ -148,12 +189,15 @@ public class ListeFichesViewModel
     public List<FicheIdentification> MesFiches { get; set; } = new();
     public List<FicheIdentification> AExaminer { get; set; } = new();
     public bool EstExaminateur { get; set; }
+    /// <summary>Nombre de grilles d'analyse en attente d'une action de l'utilisateur (MPCE).</summary>
+    public int GrillesATraiter { get; set; }
 }
 
 public class DetailsFicheViewModel
 {
     public required FicheIdentification Fiche { get; init; }
     public required ContexteUtilisateur Utilisateur { get; init; }
+    public List<GrilleAnalyse> Grilles { get; init; } = new();
     public bool PeutModifier => ReglesAcces.PeutModifier(Fiche, Utilisateur);
     public bool PeutSoumettre => ReglesAcces.PeutSoumettre(Fiche, Utilisateur);
     public bool PeutSupprimer => ReglesAcces.PeutSupprimer(Fiche, Utilisateur);

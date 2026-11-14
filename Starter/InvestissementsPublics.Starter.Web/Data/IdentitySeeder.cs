@@ -21,8 +21,9 @@ namespace InvestissementsPublics.Starter.Web.Data
             // =========================
             // 1. ROLES
             // =========================
-            // UEP / DIP : examinateurs des fiches d'identification (module IdentificationProjet)
-            var roles = new[] { "Gestionnaire systeme", "Admin", "UEP", "DIP" };
+            // Module IdentificationProjet : UEP (examen sectoriel) ; MPCE/DIP : DIP (consultation),
+            // DIP_ANALYSTE, DIP_CHEF_SERVICE, DIP_DIRECTEUR (circuit de la grille d'analyse)
+            var roles = new[] { "Gestionnaire systeme", "Admin", "UEP", "DIP", "DIP_ANALYSTE", "DIP_CHEF_SERVICE", "DIP_DIRECTEUR" };
 
             foreach (var roleName in roles)
             {
@@ -87,7 +88,10 @@ namespace InvestissementsPublics.Starter.Web.Data
                 new Privilege { NomPrivilege = "Programmation.Prevision.Approve", DescriptionPrivilege = "Approuver une prévision" },
                 new Privilege { NomPrivilege = "IdentificationProjet.Fiche.Create", DescriptionPrivilege = "Créer et soumettre une fiche d'identification d'idée de projet" },
                 new Privilege { NomPrivilege = "IdentificationProjet.Fiche.ExamenUEP", DescriptionPrivilege = "Examiner les fiches d'identification (UEP)" },
-                new Privilege { NomPrivilege = "IdentificationProjet.Fiche.ExamenDIP", DescriptionPrivilege = "Examiner les fiches d'identification (DIP)" }
+                new Privilege { NomPrivilege = "IdentificationProjet.Fiche.ExamenDIP", DescriptionPrivilege = "Consulter les fiches et grilles d'analyse (DIP)" },
+                new Privilege { NomPrivilege = "IdentificationProjet.Grille.Analyser", DescriptionPrivilege = "Remplir la grille d'analyse (Analyste de projet)" },
+                new Privilege { NomPrivilege = "IdentificationProjet.Grille.Valider", DescriptionPrivilege = "Valider la grille d'analyse (Chef de Service)" },
+                new Privilege { NomPrivilege = "IdentificationProjet.Grille.Approuver", DescriptionPrivilege = "Approuver la grille d'analyse (Vu et approuvé)" }
             };
 
             using var tx = await db.Database.BeginTransactionAsync();

@@ -27,10 +27,10 @@ public static class StatutFiche
         SoumiseUep => "Soumise à l'UEP",
         ComplementUep => "Complément demandé (UEP)",
         RejeteeUep => "Rejetée par l'UEP",
-        TransmiseDip => "Transmise à la DIP",
-        ComplementDip => "Complément demandé (DIP)",
-        RejeteeDip => "Rejetée par la DIP",
-        ApprouveeDip => "Approuvée — Avant-Projet",
+        TransmiseDip => "Soumise au MPCE (en analyse)",
+        ComplementDip => "À corriger (MPCE)",
+        RejeteeDip => "Rejetée par le MPCE",
+        ApprouveeDip => "Validée par le MPCE",
         _ => statut
     };
 
@@ -62,7 +62,7 @@ public static class StatutFiche
 
     public static readonly IReadOnlyList<string> Jalons = new[]
     {
-        "Rédaction (promoteur)", "Examen UEP", "Examen DIP", "Approuvée"
+        "Rédaction (promoteur)", "Examen UEP", "Analyse MPCE (grille)", "Validée"
     };
 }
 
@@ -84,11 +84,20 @@ public static class ActionFiche
         UepApprouver => "Approuvée par l'UEP et transmise à la DIP",
         UepComplement => "Complément demandé par l'UEP",
         UepRejeter => "Rejetée par l'UEP",
-        DipApprouver => "Approuvée par la DIP (passage à l'Avant-Projet)",
-        DipComplement => "Complément demandé par la DIP",
-        DipRejeter => "Rejetée par la DIP",
+        DipApprouver => "Validée par le MPCE (passage à l'Avant-Projet)",
+        DipComplement => "À corriger : renvoyée au promoteur par le MPCE",
+        DipRejeter => "Rejetée par le MPCE",
+        "GRILLE_GENEREE" => "Grille d'analyse générée",
+        "GRILLE_" + ActionGrille.AnalysteTransmettre => "Grille transmise au Chef de Service",
+        "GRILLE_" + ActionGrille.ChefValider => "Grille validée par le Chef de Service",
+        "GRILLE_" + ActionGrille.ChefRenvoyer => "Grille renvoyée à l'analyste (Chef de Service)",
+        "GRILLE_" + ActionGrille.DirecteurApprouver => "Grille approuvée (Vu et approuvé)",
+        "GRILLE_" + ActionGrille.DirecteurRenvoyer => "Grille renvoyée à l'analyste (Directeur)",
         _ => action
     };
+
+    /// <summary>Étapes internes du MPCE (grille), masquées au promoteur.</summary>
+    public static bool EstInterneMpce(string action) => action.StartsWith("GRILLE_", StringComparison.Ordinal);
 
     public static bool CommentaireObligatoire(string action) =>
         action is UepComplement or UepRejeter or DipComplement or DipRejeter;
@@ -99,7 +108,7 @@ public static class EtapesFiche
 {
     public static readonly IReadOnlyList<(int Numero, string Libelle, string Ancre)> Liste = new[]
     {
-        (1, "Introduction (1.1, 1.3)", "section-1"),
+        (1, "Introduction (1.1, 1.3, 1.4)", "section-1"),
         (2, "Importance du problème/besoin (2)", "section-2"),
         (3, "Idées possibles (3.1 – 3.4)", "section-3"),
         (4, "Meilleure idée et titre (3.5, 1.2)", "section-35"),

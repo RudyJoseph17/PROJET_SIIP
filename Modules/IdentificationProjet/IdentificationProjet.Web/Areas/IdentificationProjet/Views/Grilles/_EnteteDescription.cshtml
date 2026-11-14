@@ -1,0 +1,59 @@
+@*
+    En-tête et « Brève description du projet » de la grille d'analyse, conformes au
+    modèle du MPCE. Tout est COPIÉ de la fiche au moment de son arrivée au MPCE.
+*@
+@model GrilleAnalyse
+@{
+    string T(string? s) => string.IsNullOrWhiteSpace(s) ? "—" : s;
+    string D(DateTime? d) => d?.ToString("dd/MM/yyyy") ?? "—";
+}
+<div class="text-center mb-3">
+    <div class="small font-weight-bold text-gray-700">DIRECTION DE L'INVESTISSEMENT PUBLIC</div>
+    <div class="small text-gray-600">SERVICE D'ANALYSE ET DE PROGRAMMATION DE L'INVESTISSEMENT PUBLIC</div>
+    <h5 class="mt-2 mb-0 text-primary font-weight-bold">GRILLE D'ANALYSE DE LA FICHE D'IDENTIFICATION DE PROJET</h5>
+    <div class="small text-muted">Fiche @Model.CodeFiche · grille n° @Model.Numero</div>
+</div>
+
+<table class="table table-bordered table-sm ip-grille mb-3">
+    <tbody>
+        <tr><th style="width:30%">MINISTÈRE / INSTITUTION</th><td>@T(Model.Ministere)</td></tr>
+        <tr><th>TITRE DE L'IDÉE DE PROJET</th><td class="font-weight-bold">@T(Model.TitreIdee)</td></tr>
+        <tr><th>SOUMIS PAR L'UEP LE</th><td>@D(Model.DateSoumissionUep)</td></tr>
+        <tr><th>REÇU PAR LA DIP LE</th><td>@D(Model.DateReceptionDip)</td></tr>
+    </tbody>
+</table>
+
+<h6 class="font-weight-bold text-gray-800">Brève description du projet <span class="small text-muted font-weight-normal">(reprise de la fiche soumise)</span></h6>
+<table class="table table-bordered table-sm ip-grille">
+    <tbody>
+        <tr class="table-light"><th colspan="4">1- Localisation</th></tr>
+        <tr><th style="width:18%">Département</th><td>@T(Model.Departement)</td><th style="width:18%">Arrondissement</th><td>@T(Model.Arrondissement)</td></tr>
+        <tr><th>Commune</th><td>@T(Model.Commune)</td><th>Section communale</th><td>@T(Model.SectionCommunale)</td></tr>
+        <tr><th>Localité</th><td>@T(Model.Localite)</td><th>Milieu</th><td>@(Model.Milieu switch { "URBAIN" => "Urbain", "RURAL" => "Rural", _ => "—" })</td></tr>
+        <tr><th>2- Problème à résoudre</th><td colspan="3" class="ip-texte">@T(Model.Probleme)</td></tr>
+        <tr><th>3- Objectif général</th><td colspan="3" class="ip-texte">@T(Model.ObjectifGeneral)</td></tr>
+        <tr><th>3- Données quantitatives</th><td colspan="3" class="ip-texte">@T(Model.DonneesQuantitatives)</td></tr>
+        <tr><th>4- Données qualitatives</th><td colspan="3" class="ip-texte">@T(Model.DonneesQualitatives)</td></tr>
+        <tr>
+            <th>5- Pistes de solutions</th>
+            <td colspan="3">
+                @if (Model.Pistes.Count == 0) { <span>—</span> }
+                <ol class="mb-0 pl-3">
+                    @foreach (var p in Model.Pistes)
+                    {
+                        <li class="@(p.EstMeilleure ? "font-weight-bold" : "")">
+                            @p.Intitule
+                            @if (p.EstMeilleure) { <span class="badge badge-success ml-1">Retenue</span> }
+                            @if (!string.IsNullOrWhiteSpace(p.Description)) { <div class="small text-muted font-weight-normal ip-texte">@p.Description</div> }
+                        </li>
+                    }
+                </ol>
+            </td>
+        </tr>
+        <tr><th>6- Meilleure idée</th><td colspan="3" class="font-weight-bold">@T(Model.MeilleureIdee)</td></tr>
+        <tr class="table-light"><th colspan="4">7- Pertinence de l'idée choisie <span class="small font-weight-normal text-muted">(informations de la meilleure idée)</span></th></tr>
+        <tr><th>Pertinence</th><td colspan="3" class="ip-texte">@T(Model.PertinenceChoisie)</td></tr>
+        <tr><th>Légitimité</th><td colspan="3" class="ip-texte">@T(Model.LegitimiteChoisie)</td></tr>
+        <tr><th>Viabilité</th><td colspan="3" class="ip-texte">@T(Model.ViabiliteChoisie)</td></tr>
+    </tbody>
+</table>

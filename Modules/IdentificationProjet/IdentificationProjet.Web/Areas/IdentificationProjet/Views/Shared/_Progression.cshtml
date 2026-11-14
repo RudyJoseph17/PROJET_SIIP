@@ -12,8 +12,8 @@
     var couleur = Model.Progression >= 100 ? "success" : Model.Progression >= 60 ? "info" : "warning";
 }
 <div class="card shadow mb-4 ip-progression">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <span class="mr-2">Progression</span>
+    <div class="card-header py-3 d-flex flex-wrap justify-content-between align-items-center">
+        <span class="mr-2 mb-1">Progression</span>
         <partial name="_StatutBadge" model="Model.Statut" />
     </div>
     <div class="card-body">

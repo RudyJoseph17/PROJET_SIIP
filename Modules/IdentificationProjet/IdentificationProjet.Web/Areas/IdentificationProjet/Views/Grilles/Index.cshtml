@@ -1,0 +1,62 @@
+@model ListeGrillesViewModel
+@{
+    ViewData["Title"] = "Grilles d'analyse";
+    ViewData["Subtitle"] = "Direction de l'Investissement Public — Service d'analyse et de programmation de l'investissement public";
+    ViewData["GrillesATraiter"] = Model.ATraiter.Count;
+
+    async Task Tableau(List<GrilleAnalyse> grilles, string vide, bool signatures)
+    {
+        if (grilles.Count == 0)
+        {
+            <p class="text-muted mb-0">@vide</p>
+            await Task.CompletedTask; return;
+        }
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover datatable" data-page-length="25">
+                <thead>
+                    <tr>
+                        <th>Fiche</th><th>Titre de l'idée de projet</th><th>Ministère / Institution</th>
+                        <th>Reçue le</th><th>Statut</th>
+                        @if (signatures) { <th>Résultat</th> }
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var g in grilles)
+                    {
+                        <tr>
+                            <td class="text-nowrap">@g.CodeFiche<div class="small text-muted">Grille n° @g.Numero</div></td>
+                            <td>@g.TitreIdee</td>
+                            <td>@g.Ministere</td>
+                            <td data-order="@g.DateReceptionDip?.ToString("s")">@g.DateReceptionDip?.ToString("dd/MM/yyyy")</td>
+                            <td><span class="badge badge-@StatutGrille.Couleur(g.Statut)">@StatutGrille.Libelle(g.Statut)</span></td>
+                            @if (signatures) { <td class="small">@DecisionGrille.Libelle(g.Decision)</td> }
+                            <td class="text-right text-nowrap">
+                                <a asp-action="Details" asp-route-id="@g.IdGrille" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye fa-sm"></i> Ouvrir
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+<partial name="_NavModule" />
+
+<div class="card shadow mb-4 border-left-warning">
+    <div class="card-header py-3"><i class="fas fa-inbox mr-1"></i> À traiter <span class="badge badge-warning">@Model.ATraiter.Count</span></div>
+    <div class="card-body">@{ await Tableau(Model.ATraiter, "Aucune grille en attente de votre action.", false); }</div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3"><i class="fas fa-hourglass-half mr-1"></i> En cours (autres étapes)</div>
+    <div class="card-body">@{ await Tableau(Model.EnCours, "Aucune autre grille en cours.", false); }</div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3"><i class="fas fa-archive mr-1"></i> Grilles approuvées</div>
+    <div class="card-body">@{ await Tableau(Model.Approuvees, "Aucune grille approuvée.", true); }</div>
+</div>

@@ -1,0 +1,152 @@
+@model DetailsGrilleViewModel
+@{
+    var g = Model.Grille;
+    ViewData["Title"] = $"Grille d'analyse — {g.CodeFiche}";
+    ViewData["Subtitle"] = $"Grille n° {g.Numero} · {StatutGrille.Libelle(g.Statut)}";
+    string D(DateTime? d) => d?.ToString("dd/MM/yyyy") ?? "";
+}
+
+@section PageActions {
+    <div class="d-print-none">
+        <a asp-controller="Fiches" asp-action="Details" asp-route-id="@g.IdFiche" class="btn btn-sm btn-outline-secondary shadow-sm"><i class="fas fa-file-alt fa-sm mr-1"></i> Fiche</a>
+        <a asp-action="Excel" asp-route-id="@g.IdGrille" class="btn btn-sm btn-outline-success shadow-sm"><i class="fas fa-file-excel fa-sm mr-1"></i> Excel</a>
+        <button type="button" class="btn btn-sm btn-outline-secondary shadow-sm" onclick="window.print()"><i class="fas fa-print fa-sm mr-1"></i> Imprimer</button>
+        @if (Model.PeutSaisir)
+        {
+            <a asp-action="Edit" asp-route-id="@g.IdGrille" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-edit fa-sm mr-1"></i> Remplir la grille</a>
+        }
+    </div>
+}
+@section Styles { <partial name="_Styles" /> }
+
+<partial name="_NavModule" />
+
+<div class="row">
+    <div class="col-xl-9 col-lg-8">
+
+        @* ----------- Validation : Chef de Service / Directeur ----------- *@
+        @{ var actions = Model.Actions.Where(a => a != ActionGrille.AnalysteTransmettre).ToList(); }
+        @if (actions.Count > 0)
+        {
+            var directeur = g.Statut == StatutGrille.AuDirecteur;
+            <div class="card shadow mb-4 border-left-warning d-print-none">
+                <div class="card-body">
+                    <h6 class="font-weight-bold"><i class="fas fa-stamp mr-1"></i> @(directeur ? "Vu et approuvé" : "Validation du Chef de Service")</h6>
+                    @if (directeur)
+                    {
+                        <p class="small mb-2">Résultat proposé : <strong>@DecisionGrille.Libelle(g.Decision)</strong>.
+                            L'approbation fera passer la fiche au statut
+                            <span class="badge badge-@StatutFiche.Couleur(DecisionGrille.StatutFicheResultant(g.Decision))">@StatutFiche.Libelle(DecisionGrille.StatutFicheResultant(g.Decision))</span>.</p>
+                    }
+                    <form asp-action="Traiter" asp-route-id="@g.IdGrille" method="post">
+                        <div class="form-group">
+                            <label for="commentaire">Commentaire <span class="small text-muted">(obligatoire pour un renvoi à l'analyste)</span></label>
+                            <textarea id="commentaire" name="commentaire" class="form-control" rows="2" maxlength="4000"></textarea>
+                        </div>
+                        @foreach (var a in actions)
+                        {
+                            var css = a is ActionGrille.ChefRenvoyer or ActionGrille.DirecteurRenvoyer ? "outline-danger" : "success";
+                            var icone = a is ActionGrille.ChefRenvoyer or ActionGrille.DirecteurRenvoyer ? "fa-reply" : "fa-check";
+                            <button type="submit" name="operation" value="@a" class="btn btn-@css mr-1 mb-1"
+                                    data-message="@ActionGrille.Libelle(a) : confirmer ?" onclick="return confirm(this.dataset.message);">
+                                <i class="fas @icone mr-1"></i> @ActionGrille.Libelle(a)
+                            </button>
+                        }
+                    </form>
+                </div>
+            </div>
+        }
+        else if (Model.PeutSaisir)
+        {
+            <div class="alert alert-info d-print-none">
+                <i class="fas fa-pen mr-1"></i> Grille en cours d'analyse.
+                <a asp-action="Edit" asp-route-id="@g.IdGrille" class="alert-link">Remplir la grille</a>
+            </div>
+        }
+
+        @if (Model.Echanges.Count > 0)
+        {
+            <div class="alert alert-warning d-print-none">
+                <div class="font-weight-bold mb-1"><i class="fas fa-comments mr-1"></i> Échanges internes</div>
+                @foreach (var h in Model.Echanges)
+                {
+                    <div class="small">@h.DateAction.ToString("dd/MM/yyyy HH:mm") · <strong>@h.ActeurNom</strong> — @ActionFiche.Libelle(h.Action) : @h.Commentaire</div>
+                }
+            </div>
+        }
+
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <partial name="_EnteteDescription" model="g" />
+                <table class="table table-bordered table-sm ip-grille">
+                    <tr><th style="width:30%">COMMENTAIRES</th><td class="ip-texte">@g.CommentairesDescription</td></tr>
+                </table>
+
+                <h6 class="font-weight-bold text-gray-800 mt-4">Généralités</h6>
+                <table class="table table-bordered table-sm ip-gen">
+                    <thead class="thead-light"><tr><th>Question</th><th style="width:6rem">Réponse</th><th>Commentaires</th></tr></thead>
+                    <tbody>
+                        @foreach (var r in g.Reponses)
+                        {
+                            <tr class="@(r.Reponse == "NON" ? "table-danger" : "")">
+                                <td>@r.Numero. @r.Question</td>
+                                <td class="font-weight-bold">@(r.Reponse switch { "OUI" => "Oui", "NON" => "Non", _ => "—" })</td>
+                                <td class="ip-texte">@(r.Reponse == "NON" ? r.Commentaire : "")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <table class="table table-bordered table-sm ip-grille">
+                    <tr><th style="width:30%">Commentaires généraux</th><td class="ip-texte">@g.CommentairesGeneraux</td></tr>
+                    <tr class="table-light"><th colspan="2">Avis sur la fiche d'identification de projet</th></tr>
+                    <tr><th>Résultats de l'analyse</th><td class="font-weight-bold">@DecisionGrille.Libelle(g.Decision)</td></tr>
+                    <tr><th>Recommandations</th><td class="ip-texte">@g.Recommandations</td></tr>
+                </table>
+
+                <table class="table table-bordered table-sm ip-grille mb-0">
+                    <thead class="thead-light"><tr><th></th><th>Nom</th><th style="width:9rem">Le</th></tr></thead>
+                    <tbody>
+                        <tr><th>Analyste de projet</th><td>@g.AnalysteNom</td><td>@D(g.DateAnalyste)</td></tr>
+                        <tr><th>Chef de Service</th><td>@g.ChefNom</td><td>@D(g.DateChef)</td></tr>
+                        <tr><th>Vu et approuvé par</th><td>@g.DirecteurNom</td><td>@D(g.DateDirecteur)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">Circuit de la grille</div>
+            <div class="card-body small">
+                @{
+                    var etapes = new[]
+                    {
+                        ("Analyste de projet", g.DateAnalyste, StatutGrille.EnAnalyse),
+                        ("Chef de Service", g.DateChef, StatutGrille.AuChefService),
+                        ("Vu et approuvé (Directeur)", g.DateDirecteur, StatutGrille.AuDirecteur),
+                    };
+                }
+                <ol class="list-unstyled mb-3">
+                    @foreach (var (libelle, date, statut) in etapes)
+                    {
+                        var fait = date is not null;
+                        var enCours = g.Statut == statut;
+                        <li class="mb-2">
+                            <i class="fas fa-fw @(fait ? "fa-check-circle text-success" : enCours ? "fa-dot-circle text-primary" : "fa-circle text-gray-300")"></i>
+                            <span class="@(enCours ? "font-weight-bold" : "")">@libelle</span>
+                            @if (fait) { <span class="text-muted">— @D(date)</span> }
+                        </li>
+                    }
+                </ol>
+                <div class="font-weight-bold">Fiche @g.CodeFiche</div>
+                <span class="badge badge-@StatutFiche.Couleur(g.StatutFiche)">@StatutFiche.Libelle(g.StatutFiche)</span>
+                @if (g.Statut != StatutGrille.Approuvee && g.Anomalie is not null)
+                {
+                    <p class="text-muted mt-2 mb-0"><i class="fas fa-info-circle mr-1"></i>À compléter : @g.Anomalie</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
