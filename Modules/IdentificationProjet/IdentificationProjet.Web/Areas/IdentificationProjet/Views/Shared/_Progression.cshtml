@@ -1,0 +1,61 @@
+@*
+    Suivi de la progression d'une fiche :
+      - avancement de la rédaction (5 étapes calculées par le type objet T_IP_FICHE)
+      - position dans le circuit promoteur -> UEP -> DIP (Manuel §3.E)
+    ViewData["LiensEtapes"] = true : les étapes sont des liens vers les sections du formulaire.
+*@
+@model FicheIdentification
+@{
+    var liens = ViewData["LiensEtapes"] is true;
+    var jalon = StatutFiche.Jalon(Model.Statut);
+    var rejet = StatutFiche.EstRejetee(Model.Statut);
+    var couleur = Model.Progression >= 100 ? "success" : Model.Progression >= 60 ? "info" : "warning";
+}
+<div class="card shadow mb-4 ip-progression">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <span class="mr-2">Progression</span>
+        <partial name="_StatutBadge" model="Model.Statut" />
+    </div>
+    <div class="card-body">
+        <div class="small font-weight-bold mb-1">Rédaction <span class="float-right">@Model.Progression %</span></div>
+        <div class="progress mb-3" style="height:.6rem" role="progressbar" aria-valuenow="@Model.Progression" aria-valuemin="0" aria-valuemax="100" aria-label="Avancement de la rédaction">
+            <div class="progress-bar bg-@couleur" style="width:@(Model.Progression)%"></div>
+        </div>
+
+        <ul class="list-unstyled small mb-3">
+            @foreach (var e in EtapesFiche.Liste)
+            {
+                var ok = Model.EtapeComplete(e.Numero);
+                <li class="mb-1">
+                    <i class="fas fa-fw @(ok ? "fa-check-circle text-success" : "fa-circle text-gray-300")" aria-hidden="true"></i>
+                    @if (liens)
+                    {
+                        <a href="#@e.Ancre">@e.Libelle</a>
+                    }
+                    else
+                    {
+                        @e.Libelle
+                    }
+                    <span class="sr-only">@(ok ? "(complète)" : "(à compléter)")</span>
+                </li>
+            }
+            <li class="mb-1 text-muted">
+                <i class="fas fa-fw fa-paperclip" aria-hidden="true"></i>
+                @if (liens) { <a href="#section-5">Documents annexes (5)</a> } else { <span>Documents annexes (5)</span> }
+                — @Model.NbAnnexes / @LimitesAnnexes.NombreMax <em>(facultatif)</em>
+            </li>
+        </ul>
+
+        <div class="small font-weight-bold mb-2">Circuit de validation</div>
+        <ol class="ip-jalons list-unstyled small mb-0">
+            @for (var i = 0; i < StatutFiche.Jalons.Count; i++)
+            {
+                var etat = i < jalon || Model.Statut == StatutFiche.ApprouveeDip ? "fait" : i == jalon ? (rejet ? "rejet" : "encours") : "afaire";
+                var icone = etat switch { "fait" => "fa-check-circle text-success", "encours" => "fa-dot-circle text-primary", "rejet" => "fa-times-circle text-danger", _ => "fa-circle text-gray-300" };
+                <li class="ip-jalon ip-jalon-@etat">
+                    <i class="fas fa-fw @icone" aria-hidden="true"></i> @StatutFiche.Jalons[i]
+                </li>
+            }
+        </ol>
+    </div>
+</div>

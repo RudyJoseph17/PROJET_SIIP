@@ -1,0 +1,259 @@
+@model DetailsFicheViewModel
+@{
+    var f = Model.Fiche;
+    ViewData["Title"] = $"Fiche {f.CodeFiche}";
+    ViewData["Subtitle"] = f.TitreProjet ?? "Fiche d'identification de l'idée de projet";
+
+    string Texte(string? s) => string.IsNullOrWhiteSpace(s) ? "" : s;
+}
+
+@section PageActions {
+    <div>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary shadow-sm"><i class="fas fa-arrow-left fa-sm mr-1"></i> Liste</a>
+        <button type="button" class="btn btn-sm btn-outline-secondary shadow-sm" onclick="window.print()"><i class="fas fa-print fa-sm mr-1"></i> Imprimer</button>
+        @if (Model.PeutModifier)
+        {
+            <a asp-action="Edit" asp-route-id="@f.IdFiche" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-edit fa-sm mr-1"></i> Modifier</a>
+        }
+    </div>
+}
+
+@{
+    void Bloc(string titre, string? contenu)
+    {
+        <h6 class="font-weight-bold text-gray-800 mt-3">@titre</h6>
+        @if (string.IsNullOrWhiteSpace(contenu))
+        {
+            <p class="text-muted font-italic small">Non renseigné.</p>
+        }
+        else
+        {
+            <p class="ip-texte">@contenu</p>
+        }
+    }
+}
+
+<div class="row">
+    <div class="col-xl-9 col-lg-8">
+
+        @* -------- Panneau d'actions (promoteur / examinateur) -------- *@
+        @if (Model.PeutSoumettre || Model.PeutSupprimer || Model.ActionsExamen.Count > 0 || (Model.PeutModifier && f.Progression < 100))
+        {
+            <div class="card shadow mb-4 border-left-@(Model.ActionsExamen.Count > 0 ? "warning" : "primary") d-print-none">
+                <div class="card-body">
+                    @if (Model.ActionsExamen.Count > 0)
+                    {
+                        var uep = f.Statut == StatutFiche.SoumiseUep;
+                        <h6 class="font-weight-bold">
+                            <i class="fas fa-clipboard-check mr-1"></i> Examen @(uep ? "de l'UEP" : "de la DIP")
+                        </h6>
+                        <ul class="small text-muted mb-3">
+                            <li>Vérifier que le document est complet, clair et précis ; demander des renseignements supplémentaires au besoin.</li>
+                            <li>Évaluer la force de la justification de l'idée de projet et vérifier que toutes les idées possibles ont été identifiées.</li>
+                            @if (uep)
+                            {
+                                <li>Analyser la légitimité (objectifs <strong>sectoriels</strong>), la pertinence et la viabilité de chaque idée pour vérifier que la meilleure idée a été choisie.</li>
+                            }
+                            else
+                            {
+                                <li>Vérifier avec le secteur concerné que le projet est conforme à ses priorités.</li>
+                                <li>Analyser la légitimité (objectifs <strong>nationaux et régionaux</strong>), la pertinence et la viabilité de chaque idée.</li>
+                            }
+                        </ul>
+                        <form asp-action="Examiner" asp-route-id="@f.IdFiche" method="post">
+                            <div class="form-group">
+                                <label for="commentaire">Commentaire <span class="small text-muted">(obligatoire pour un complément ou un rejet)</span></label>
+                                <textarea id="commentaire" name="commentaire" class="form-control" rows="3" maxlength="4000"></textarea>
+                            </div>
+                            @foreach (var action in Model.ActionsExamen)
+                            {
+                                var (css, icone) = action switch
+                                {
+                                    ActionFiche.UepApprouver or ActionFiche.DipApprouver => ("success", "fa-check"),
+                                    ActionFiche.UepComplement or ActionFiche.DipComplement => ("warning", "fa-reply"),
+                                    _ => ("danger", "fa-times")
+                                };
+                                var libelle = action switch
+                                {
+                                    ActionFiche.UepApprouver => "Approuver et transmettre à la DIP",
+                                    ActionFiche.DipApprouver => "Approuver (passage à l'Avant-Projet)",
+                                    ActionFiche.UepComplement or ActionFiche.DipComplement => "Demander un complément",
+                                    _ => "Rejeter"
+                                };
+                                <button type="submit" name="action" value="@action" class="btn btn-@css mr-1 mb-1"
+                                        data-message="@libelle : confirmer ?" onclick="return confirm(this.dataset.message);">
+                                    <i class="fas @icone mr-1"></i> @libelle
+                                </button>
+                            }
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-wrap align-items-center justify-content-between">
+                            <span class="mb-2 mb-md-0">
+                                @if (Model.PeutSoumettre)
+                                {
+                                    <i class="fas fa-check-circle text-success mr-1"></i>@:La fiche est complète et peut être soumise pour examen.
+                                }
+                                else if (Model.PeutModifier)
+                                {
+                                    <i class="fas fa-pen text-warning mr-1"></i>@:Fiche complète à @f.Progression % : terminez les étapes restantes avant de la soumettre.
+                                }
+                            </span>
+                            <div>
+                                @if (Model.PeutSupprimer)
+                                {
+                                    <form asp-action="Supprimer" asp-route-id="@f.IdFiche" method="post" class="d-inline" data-confirm="Supprimer définitivement ce brouillon ?">
+                                        <button type="submit" class="btn btn-outline-danger"><i class="fas fa-trash-alt mr-1"></i> Supprimer</button>
+                                    </form>
+                                }
+                                @if (Model.PeutSoumettre)
+                                {
+                                    <form asp-action="Soumettre" asp-route-id="@f.IdFiche" method="post" class="d-inline"
+                                          data-confirm="Soumettre la fiche pour examen ? Elle ne sera plus modifiable sauf demande de complément.">
+                                        <button type="submit" class="btn btn-success"><i class="fas fa-paper-plane mr-1"></i> Soumettre</button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @* ------------------------- La fiche ------------------------- *@
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 text-center">
+                <div class="small text-muted">DIRECTION DE L'INVESTISSEMENT PUBLIC — DIP</div>
+                FICHE D'IDENTIFICATION DE L'IDÉE DE PROJET
+                <div class="small text-muted">@f.CodeFiche · @f.PromoteurNom · @f.Ministere</div>
+            </div>
+            <div class="card-body ip-fiche">
+
+                <h5 class="text-primary">1. Introduction</h5>
+                <h6 class="font-weight-bold text-gray-800">1.1. Contact principal</h6>
+                <dl class="row small mb-0">
+                    <dt class="col-sm-4">Nom de l'organisation</dt><dd class="col-sm-8">@Texte(f.NomOrganisation)</dd>
+                    <dt class="col-sm-4">Nom de la personne contact</dt><dd class="col-sm-8">@Texte(f.NomContact)</dd>
+                    <dt class="col-sm-4">Téléphone</dt><dd class="col-sm-8">@Texte(f.Telephone)</dd>
+                    <dt class="col-sm-4">Adresse électronique</dt><dd class="col-sm-8">@Texte(f.Courriel)</dd>
+                </dl>
+                @{ Bloc("1.3. Description du problème à résoudre ou du besoin à satisfaire", f.DescriptionProbleme); }
+
+                <h5 class="text-primary mt-4">2. Importance du problème/besoin</h5>
+                @{ Bloc("2.1. Présentation des données pour illustrer l'existence du problème/besoin", f.DonneesProbleme); }
+                @{ Bloc("2.2. Conséquences probables si le problème/besoin n'est pas traité", f.Consequences); }
+
+                <h5 class="text-primary mt-4">3. Identification des idées pour traiter le problème/besoin</h5>
+                @if (f.Idees.Count == 0)
+                {
+                    <p class="text-muted font-italic small">Aucune idée possible renseignée.</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm small">
+                            <thead class="thead-light">
+                                <tr><th>N°</th><th>3.1. Idée possible</th><th>3.2. Légitimité</th><th>3.3. Pertinence</th><th>3.4. Viabilité</th></tr>
+                            </thead>
+                            <tbody>
+                                @for (var i = 0; i < f.Idees.Count; i++)
+                                {
+                                    var idee = f.Idees[i];
+                                    <tr class="@(idee.EstMeilleure ? "table-success" : "")">
+                                        <td>@(i + 1)</td>
+                                        <td><strong>@idee.Intitule</strong><div class="ip-texte">@idee.Description</div></td>
+                                        <td class="ip-texte">@idee.Legitimite</td>
+                                        <td class="ip-texte">@idee.Pertinence</td>
+                                        <td class="ip-texte">@idee.Viabilite</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                <h6 class="font-weight-bold text-gray-800 mt-3">3.5. Détermination de la meilleure idée</h6>
+                <ul class="list-unstyled small">
+                    @for (var i = 0; i < f.Idees.Count; i++)
+                    {
+                        var idee = f.Idees[i];
+                        <li>
+                            <i class="far fa-fw @(idee.EstMeilleure ? "fa-check-square text-success" : "fa-square text-gray-400")" aria-hidden="true"></i>
+                            <span class="@(idee.EstMeilleure ? "font-weight-bold" : "")">Idée @(i + 1) — @idee.Intitule</span>
+                            @if (idee.EstMeilleure) { <span class="badge badge-success ml-1">Meilleure idée</span> }
+                        </li>
+                    }
+                </ul>
+                @if (!string.IsNullOrWhiteSpace(f.JustificationChoix))
+                {
+                    <p class="ip-texte">@f.JustificationChoix</p>
+                }
+
+                @if (f.MeilleureIdee is not null)
+                {
+                    <h6 class="font-weight-bold text-gray-800 mt-3">1.2. Titre proposé du projet</h6>
+                    @if (string.IsNullOrWhiteSpace(f.TitreProjet)) { <p class="text-muted font-italic small">Non renseigné.</p> }
+                    else { <p class="lead mb-0">@f.TitreProjet</p> }
+                }
+
+                <h5 class="text-primary mt-4">4. Conclusion et recommandations</h5>
+                @{ Bloc("4.1. Premières conclusions et recommandations pour les prochaines étapes", f.Conclusions); }
+
+                <h5 class="text-primary mt-4">5. Documents annexes</h5>
+                @if (f.Annexes.Count == 0)
+                {
+                    <p class="text-muted font-italic small mb-0">Aucun document annexe.</p>
+                }
+                else
+                {
+                    <ul class="mb-0">
+                        @foreach (var a in f.Annexes)
+                        {
+                            <li>
+                                <a asp-action="Annexe" asp-route-id="@f.IdFiche" asp-route-idAnnexe="@a.IdAnnexe">@a.NomFichier</a>
+                                <span class="small text-muted">(@(a.Taille < 1024 ? $"{a.Taille} o" : a.Taille < 1048576 ? $"{a.Taille / 1024.0:N0} Ko" : $"{a.Taille / 1048576.0:N1} Mo"))@(string.IsNullOrWhiteSpace(a.Description) ? "" : " — " + a.Description)</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-lg-4">
+        <partial name="_Progression" model="f" />
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">Historique</div>
+            <div class="card-body">
+                <ul class="list-unstyled small mb-0 ip-historique">
+                    @foreach (var h in f.Historique.AsEnumerable().Reverse())
+                    {
+                        <li class="mb-3">
+                            <div class="font-weight-bold">@ActionFiche.Libelle(h.Action)</div>
+                            <div class="text-muted">@h.DateAction.ToString("dd/MM/yyyy HH:mm") · @h.ActeurNom</div>
+                            @if (!string.IsNullOrWhiteSpace(h.Commentaire))
+                            {
+                                <div class="ip-texte border-left pl-2 mt-1">@h.Commentaire</div>
+                            }
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .ip-texte { white-space: pre-line; }
+        .ip-fiche h6 { font-size: .9rem; }
+        @@media print {
+            #accordionSidebar, .topbar, .sticky-footer, .scroll-to-top, .d-print-none { display: none !important; }
+            .col-xl-9, .col-lg-8 { flex: 0 0 100%; max-width: 100%; }
+            .col-xl-3.col-lg-4 { display: none; }
+            .card { box-shadow: none !important; border: 0; }
+        }
+    </style>
+}

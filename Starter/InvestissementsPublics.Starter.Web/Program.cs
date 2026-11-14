@@ -1,6 +1,7 @@
 using InvestissementsPublics.Starter.Web.Data;
 using InvestissementsPublics.Starter.Web.Controllers;
 using InvestissementsPublics.Starter.Web.Service;
+using IdentificationProjet.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -14,11 +15,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews()
 .AddApplicationPart(typeof(TableauxDeBord.Web.Areas.TableauxDeBord.Controllers.HomeController).Assembly)
+.AddApplicationPart(typeof(IdentificationProjet.Web.Areas.IdentificationProjet.Controllers.FichesController).Assembly)
 //.AddApplicationPart(typeof(InvestissementsPublics.Starter.Web.Controllers.RoleController).Assembly)
 .AddRazorRuntimeCompilation();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Module "Identification projet" (tables objet Oracle : Modules/IdentificationProjet/Database)
+builder.Services.AddIdentificationProjet(builder.Configuration.GetConnectionString("DefaultConnection")!);
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 {

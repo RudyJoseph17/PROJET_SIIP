@@ -1,0 +1,393 @@
+@*
+    Saisie de la Fiche d'Identification de l'Idée de Projet (Annexe 3), avec les
+    adaptations demandées :
+      - 1.2 (titre) n'apparaît qu'après la détermination de la meilleure idée (3.5) ;
+      - 3.1 à 3.4 fusionnées en un tableau (une ligne par idée, nombre illimité) ;
+      - 3.5 reprend chaque idée avec une case à cocher « meilleure idée » ;
+      - section 5 : documents annexes (3 au maximum).
+*@
+@model FicheEditViewModel
+@{
+    var fiche = Model.Fiche!;
+    ViewData["Title"] = $"Fiche {fiche.CodeFiche}";
+    ViewData["Subtitle"] = "Fiche d'identification de l'idée de projet — " + StatutFiche.Libelle(fiche.Statut);
+    ViewData["LiensEtapes"] = true;
+
+    var demandeComplement = fiche.Statut is StatutFiche.ComplementUep or StatutFiche.ComplementDip
+        ? fiche.Historique.LastOrDefault(h => h.NouveauStatut == fiche.Statut)
+        : null;
+    var lignes = Model.Idees.Count > 0 ? Model.Idees : new List<IdeeLigneViewModel> { new() };
+    var peutAjouterAnnexe = fiche.NbAnnexes < LimitesAnnexes.NombreMax;
+}
+
+@section PageActions {
+    <a asp-action="Details" asp-route-id="@fiche.IdFiche" class="btn btn-sm btn-outline-secondary shadow-sm">
+        <i class="fas fa-eye fa-sm mr-1"></i> Aperçu et suivi
+    </a>
+}
+
+@{
+    string TailleLisible(long o) => o < 1024 ? $"{o} o" : o < 1048576 ? $"{o / 1024.0:N0} Ko" : $"{o / 1048576.0:N1} Mo";
+
+    // Une ligne du tableau des idées (index = "__i__" pour le modèle JavaScript)
+    void LigneIdee(string i, IdeeLigneViewModel idee, bool meilleure)
+    {
+        <tr class="ip-idee" data-cle="@(idee.IdIdee?.ToString() ?? Guid.NewGuid().ToString("N"))" data-meilleure="@(meilleure ? "1" : "0")">
+            <td class="text-center align-middle">
+                <span class="ip-idee-num badge badge-primary"></span>
+                <input type="hidden" name="Idees[@i].IdIdee" value="@idee.IdIdee" />
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm mb-1 ip-idee-intitule" name="Idees[@i].Intitule" value="@idee.Intitule"
+                       maxlength="500" placeholder="Intitulé de l'idée" aria-label="Intitulé de l'idée" />
+                <textarea class="form-control form-control-sm" name="Idees[@i].Description" rows="3"
+                          placeholder="Brève description" aria-label="Brève description de l'idée">@idee.Description</textarea>
+            </td>
+            <td><textarea class="form-control form-control-sm ip-idee-legitimite" name="Idees[@i].Legitimite" rows="5" aria-label="Légitimité">@idee.Legitimite</textarea></td>
+            <td><textarea class="form-control form-control-sm ip-idee-pertinence" name="Idees[@i].Pertinence" rows="5" aria-label="Pertinence">@idee.Pertinence</textarea></td>
+            <td><textarea class="form-control form-control-sm ip-idee-viabilite" name="Idees[@i].Viabilite" rows="5" aria-label="Viabilité">@idee.Viabilite</textarea></td>
+            <td class="text-center align-middle">
+                <button type="button" class="btn btn-sm btn-outline-danger ip-idee-suppr" title="Retirer cette idée" aria-label="Retirer cette idée">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </td>
+        </tr>
+    }
+}
+
+@if (demandeComplement is not null)
+{
+    <div class="alert alert-warning shadow-sm">
+        <i class="fas fa-comment-dots mr-2"></i>
+        <strong>@ActionFiche.Libelle(demandeComplement.Action)</strong>
+        (@demandeComplement.ActeurNom, le @demandeComplement.DateAction.ToString("dd/MM/yyyy")) :
+        <div class="mt-1" style="white-space:pre-line">@demandeComplement.Commentaire</div>
+    </div>
+}
+
+<div class="row">
+    <div class="col-xl-9 col-lg-8">
+        <form asp-action="Edit" asp-route-id="@fiche.IdFiche" method="post" enctype="multipart/form-data" id="form-fiche">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+            }
+
+            @* ======================== 1. INTRODUCTION ======================== *@
+            <div class="card shadow mb-4" id="section-1">
+                <div class="card-header py-3">1. Introduction</div>
+                <div class="card-body">
+                    <h6 class="font-weight-bold text-gray-800">1.1. Contact principal</h6>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label asp-for="NomOrganisation"></label>
+                            <input asp-for="NomOrganisation" class="form-control" />
+                            <span asp-validation-for="NomOrganisation" class="text-danger small"></span>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label asp-for="NomContact"></label>
+                            <input asp-for="NomContact" class="form-control" />
+                            <span asp-validation-for="NomContact" class="text-danger small"></span>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label asp-for="Telephone"></label>
+                            <input asp-for="Telephone" class="form-control" type="tel" />
+                            <span asp-validation-for="Telephone" class="text-danger small"></span>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label asp-for="Courriel"></label>
+                            <input asp-for="Courriel" class="form-control" type="email" />
+                            <span asp-validation-for="Courriel" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <p class="small text-muted mb-3">
+                        <i class="fas fa-info-circle mr-1"></i>La section 1.2 (titre proposé du projet) sera saisie après la
+                        détermination de la meilleure idée (section 3.5).
+                    </p>
+
+                    <h6 class="font-weight-bold text-gray-800">1.3. Description du problème à résoudre ou du besoin à satisfaire</h6>
+                    <p class="small text-muted">Décrivez le problème que le projet doit traiter, y compris l'historique du problème
+                        ainsi que le contexte (par exemple, social, physique, économique, légal, politique, institutionnel,
+                        environnemental, culturel). L'objectif du projet doit être également identifié.</p>
+                    <textarea asp-for="DescriptionProbleme" class="form-control" rows="7" aria-label="1.3 Description du problème"></textarea>
+                </div>
+            </div>
+
+            @* ================== 2. IMPORTANCE DU PROBLÈME ================== *@
+            <div class="card shadow mb-4" id="section-2">
+                <div class="card-header py-3">2. Importance du problème/besoin</div>
+                <div class="card-body">
+                    <h6 class="font-weight-bold text-gray-800">2.1. Présentation des données pour illustrer l'existence du problème/besoin</h6>
+                    <p class="small text-muted">Fournir des données quantitatives/qualitatives qui démontrent l'importance du problème/besoin.</p>
+                    <textarea asp-for="DonneesProbleme" class="form-control mb-4" rows="6" aria-label="2.1 Données"></textarea>
+
+                    <h6 class="font-weight-bold text-gray-800">2.2. Conséquences probables si le problème/besoin n'est pas traité</h6>
+                    <p class="small text-muted">Décrivez les résultats susceptibles de se produire, si le projet n'est pas mis en œuvre.</p>
+                    <textarea asp-for="Consequences" class="form-control" rows="5" aria-label="2.2 Conséquences"></textarea>
+                </div>
+            </div>
+
+            @* ======== 3. IDENTIFICATION DES IDÉES (3.1 à 3.4 en tableau) ======== *@
+            <div class="card shadow mb-4" id="section-3">
+                <div class="card-header py-3">3. Identification des idées pour traiter le problème/besoin</div>
+                <div class="card-body">
+                    <p class="small text-muted mb-2">
+                        Énumérez toutes les solutions possibles (une ligne par idée, sans limite) et analysez chacune
+                        selon les trois critères. Toutes les colonnes doivent être renseignées pour chaque idée.
+                    </p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered ip-table-idees mb-2" id="table-idees">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th style="width:3rem">N°</th>
+                                    <th style="min-width:12rem">3.1. Idée possible
+                                        <div class="font-weight-normal text-muted text-none">Intitulé et brève description de la solution</div></th>
+                                    <th style="min-width:9rem">3.2. Légitimité
+                                        <div class="font-weight-normal text-muted text-none">Cohérence avec les objectifs globaux, régionaux et sectoriels</div></th>
+                                    <th style="min-width:9rem">3.3. Pertinence
+                                        <div class="font-weight-normal text-muted text-none">Facteurs du contexte qui pourraient soutenir ou bloquer le projet</div></th>
+                                    <th style="min-width:9rem">3.4. Viabilité
+                                        <div class="font-weight-normal text-muted text-none">Facteurs influençant la capacité à réaliser des bénéfices sur le long terme</div></th>
+                                    <th style="width:3rem"><span class="sr-only">Actions</span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="corps-idees">
+                                @for (var i = 0; i < lignes.Count; i++)
+                                {
+                                    LigneIdee(i.ToString(), lignes[i], Model.IndexMeilleureIdee == i);
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <template id="modele-idee">
+                        @{ LigneIdee("__i__", new IdeeLigneViewModel(), false); }
+                    </template>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="ajouter-idee">
+                        <i class="fas fa-plus fa-sm mr-1"></i> Ajouter une idée
+                    </button>
+                </div>
+            </div>
+
+            @* ============== 3.5 DÉTERMINATION DE LA MEILLEURE IDÉE ============== *@
+            <div class="card shadow mb-4" id="section-35">
+                <div class="card-header py-3">3.5. Détermination de la meilleure idée</div>
+                <div class="card-body">
+                    <p class="small text-muted">En prenant en compte l'analyse de la légitimité, la pertinence et la viabilité de
+                        chaque idée, quelle est la meilleure solution pour résoudre le problème ou satisfaire le besoin ?
+                        Cochez une seule idée.</p>
+                    <div id="liste-meilleure" class="mb-3" role="group" aria-label="Choix de la meilleure idée"></div>
+                    <p id="aucune-idee" class="text-muted small d-none">Saisissez au moins une idée dans le tableau ci-dessus.</p>
+
+                    <div id="bloc-justification" class="d-none">
+                        <label asp-for="JustificationChoix" class="font-weight-bold text-gray-800"></label>
+                        <textarea asp-for="JustificationChoix" class="form-control" rows="5"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            @* ====== 1.2 TITRE PROPOSÉ — seulement après le choix de la meilleure idée ====== *@
+            <div class="card shadow mb-4 border-left-primary d-none" id="section-12">
+                <div class="card-header py-3">1.2. Titre proposé du projet</div>
+                <div class="card-body">
+                    <p class="small text-muted mb-2">Le titre doit contenir l'action, l'objet, et la localisation.
+                        <span class="d-block">Meilleure idée retenue : <strong id="rappel-meilleure"></strong></span></p>
+                    <input asp-for="TitreProjet" class="form-control" placeholder="Ex. : Construction d'un nouveau pont sur la rivière X à Y" />
+                    <span asp-validation-for="TitreProjet" class="text-danger small"></span>
+                </div>
+            </div>
+
+            @* ================= 4. CONCLUSION ET RECOMMANDATIONS ================= *@
+            <div class="card shadow mb-4" id="section-4">
+                <div class="card-header py-3">4. Conclusion et recommandations</div>
+                <div class="card-body">
+                    <h6 class="font-weight-bold text-gray-800">4.1. Premières conclusions et recommandations pour les prochaines étapes</h6>
+                    <p class="small text-muted">Présenter les principales conclusions et les mesures à prendre pour la meilleure idée.
+                        S'il est recommandé que le projet se poursuive, joignez à cette fiche les Termes de Référence pour
+                        l'Étude de Préfaisabilité (section 5).</p>
+                    <textarea asp-for="Conclusions" class="form-control" rows="6" aria-label="4.1 Conclusions"></textarea>
+                </div>
+            </div>
+
+            @* ====================== 5. DOCUMENTS ANNEXES ====================== *@
+            <div class="card shadow mb-4" id="section-5">
+                <div class="card-header py-3 d-flex justify-content-between">
+                    <span>5. Documents annexes</span>
+                    <span class="small text-muted">@fiche.NbAnnexes / @LimitesAnnexes.NombreMax</span>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">Documents de référence applicables (études, cartes, bibliographie, Termes de
+                        Référence de l'Étude de Préfaisabilité…). @LimitesAnnexes.NombreMax documents au maximum, 10 Mo chacun.</p>
+
+                    @if (fiche.Annexes.Count > 0)
+                    {
+                        <ul class="list-group mb-3">
+                            @foreach (var a in fiche.Annexes)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas fa-file-alt text-gray-500 mr-2"></i>
+                                        <a asp-action="Annexe" asp-route-id="@fiche.IdFiche" asp-route-idAnnexe="@a.IdAnnexe">@a.NomFichier</a>
+                                        <span class="small text-muted ml-1">(@TailleLisible(a.Taille))</span>
+                                        @if (!string.IsNullOrWhiteSpace(a.Description)) { <div class="small text-muted">@a.Description</div> }
+                                    </div>
+                                    <button type="submit" name="commande" value="supprimer-annexe-@a.IdAnnexe" class="btn btn-sm btn-outline-danger"
+                                            formnovalidate data-message="Retirer le document « @a.NomFichier » ?" onclick="return confirm(this.dataset.message);"
+                                            title="Retirer ce document" aria-label="Retirer @a.NomFichier">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </li>
+                            }
+                        </ul>
+                    }
+
+                    @if (peutAjouterAnnexe)
+                    {
+                        <div class="form-row align-items-end">
+                            <div class="form-group col-md-6">
+                                <label asp-for="NouvelleAnnexe">Ajouter un document</label>
+                                <input asp-for="NouvelleAnnexe" type="file" class="form-control-file" accept="@LimitesAnnexes.Accept" />
+                                <span asp-validation-for="NouvelleAnnexe" class="text-danger small"></span>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label asp-for="DescriptionAnnexe"></label>
+                                <input asp-for="DescriptionAnnexe" class="form-control" placeholder="Ex. : Carte de la zone d'intervention" />
+                            </div>
+                        </div>
+                        <p class="small text-muted mb-0">Le document est ajouté lors de l'enregistrement de la fiche.</p>
+                    }
+                    else
+                    {
+                        <p class="small text-muted mb-0"><i class="fas fa-info-circle mr-1"></i>Nombre maximal de documents atteint.
+                            Retirez un document pour en ajouter un autre.</p>
+                    }
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
+                    <span class="small text-muted mb-2 mb-md-0">Le brouillon peut être enregistré à tout moment. La soumission
+                        exige que les 5 étapes soient complètes.</span>
+                    <div>
+                        <button type="submit" name="commande" value="enregistrer" class="btn btn-primary">
+                            <i class="fas fa-save mr-1"></i> Enregistrer le brouillon
+                        </button>
+                        <button type="submit" name="commande" value="soumettre" class="btn btn-success"
+                                onclick="return confirm('Enregistrer et soumettre la fiche pour examen ? Elle ne sera plus modifiable sauf demande de complément.');">
+                            <i class="fas fa-paper-plane mr-1"></i> Enregistrer et soumettre
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-xl-3 col-lg-4">
+        <div class="ip-sticky">
+            <partial name="_Progression" model="fiche" />
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .ip-sticky { position: sticky; top: 1rem; }
+        .ip-table-idees th { vertical-align: top; text-transform: none; letter-spacing: 0; }
+        .ip-table-idees .text-none { text-transform: none; font-size: .72rem; letter-spacing: 0; }
+        .ip-table-idees td { padding: .4rem; }
+        .ip-choix { border: 1px solid #e3e6f0; border-radius: .35rem; padding: .6rem .75rem .6rem 2.25rem; margin-bottom: .5rem; }
+        .ip-choix.choisie { border-color: #1cc88a; background: #f0fbf6; }
+        .ip-choix .ip-criteres { font-size: .78rem; color: #6e707e; }
+        .ip-jalon-afaire { color: #858796; }
+    </style>
+}
+
+@section Scripts {
+    <script>
+    (function () {
+        var corps = document.getElementById('corps-idees');
+        var modele = document.getElementById('modele-idee');
+        var liste = document.getElementById('liste-meilleure');
+        var cleChoisie = (corps.querySelector('tr[data-meilleure="1"]') || {}).dataset?.cle || null;
+
+        function lignes() { return Array.prototype.slice.call(corps.querySelectorAll('tr.ip-idee')); }
+        function texte(tr, cls) { var el = tr.querySelector(cls); return el ? el.value.trim() : ''; }
+        function extrait(s) { return s.length > 110 ? s.substring(0, 110) + '…' : s; }
+        function echapper(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        // Renumérote les champs Idees[i].* pour la liaison de modèle ASP.NET
+        function renumeroter() {
+            lignes().forEach(function (tr, i) {
+                tr.querySelector('.ip-idee-num').textContent = i + 1;
+                tr.querySelectorAll('[name^="Idees["]').forEach(function (el) {
+                    el.name = el.name.replace(/^Idees\[[^\]]*\]/, 'Idees[' + i + ']');
+                });
+            });
+            reconstruireChoix();
+        }
+
+        // 3.5 : reprend chaque idée du tableau avec une case à cocher
+        function reconstruireChoix() {
+            var trs = lignes();
+            liste.innerHTML = '';
+            var existe = false;
+            trs.forEach(function (tr, i) {
+                var intitule = texte(tr, '.ip-idee-intitule');
+                var leg = texte(tr, '.ip-idee-legitimite'), per = texte(tr, '.ip-idee-pertinence'), via = texte(tr, '.ip-idee-viabilite');
+                if (!intitule && !leg && !per && !via && !texte(tr, 'textarea[name$=".Description"]')) return;
+                existe = true;
+                var coche = tr.dataset.cle === cleChoisie;
+                var id = 'meilleure-' + i;
+                var div = document.createElement('div');
+                div.className = 'ip-choix custom-control custom-checkbox' + (coche ? ' choisie' : '');
+                div.innerHTML =
+                    '<input type="checkbox" class="custom-control-input" name="IndexMeilleureIdee" id="' + id + '" value="' + i + '"' + (coche ? ' checked' : '') + '>' +
+                    '<label class="custom-control-label font-weight-bold" for="' + id + '">Idée ' + (i + 1) + ' — ' + (intitule ? echapper(intitule) : '<em>sans intitulé</em>') + '</label>' +
+                    '<div class="ip-criteres"><div><strong>Légitimité :</strong> ' + echapper(extrait(leg) || '—') + '</div>' +
+                    '<div><strong>Pertinence :</strong> ' + echapper(extrait(per) || '—') + '</div>' +
+                    '<div><strong>Viabilité :</strong> ' + echapper(extrait(via) || '—') + '</div></div>';
+                div.querySelector('input').addEventListener('change', function (e) {
+                    cleChoisie = e.target.checked ? tr.dataset.cle : null;
+                    reconstruireChoix();
+                });
+                liste.appendChild(div);
+            });
+            if (cleChoisie && !trs.some(function (tr) { return tr.dataset.cle === cleChoisie; })) cleChoisie = null;
+            document.getElementById('aucune-idee').classList.toggle('d-none', existe);
+            majSectionTitre();
+        }
+
+        // 1.2 n'apparaît qu'une fois la meilleure idée déterminée
+        function majSectionTitre() {
+            var tr = cleChoisie ? corps.querySelector('tr[data-cle="' + cleChoisie + '"]') : null;
+            var choisie = !!tr && liste.querySelector('input:checked') !== null;
+            document.getElementById('section-12').classList.toggle('d-none', !choisie);
+            document.getElementById('bloc-justification').classList.toggle('d-none', !choisie);
+            document.getElementById('rappel-meilleure').textContent = choisie ? (texte(tr, '.ip-idee-intitule') || 'Idée ' + (lignes().indexOf(tr) + 1)) : '';
+        }
+
+        document.getElementById('ajouter-idee').addEventListener('click', function () {
+            var tr = modele.content.firstElementChild.cloneNode(true);
+            tr.dataset.cle = 'n' + Date.now() + Math.random().toString(16).slice(2);
+            corps.appendChild(tr);
+            renumeroter();
+            tr.querySelector('.ip-idee-intitule').focus();
+        });
+
+        corps.addEventListener('click', function (e) {
+            var btn = e.target.closest('.ip-idee-suppr');
+            if (!btn) return;
+            var tr = btn.closest('tr');
+            var rempli = Array.prototype.some.call(tr.querySelectorAll('input[type=text], textarea'), function (el) { return el.value.trim(); });
+            if (rempli && !confirm('Retirer cette idée du tableau ? Elle sera supprimée à l\'enregistrement.')) return;
+            tr.remove();
+            renumeroter();
+        });
+
+        var minuterie;
+        corps.addEventListener('input', function () { clearTimeout(minuterie); minuterie = setTimeout(reconstruireChoix, 250); });
+
+        renumeroter();
+    })();
+    </script>
+}

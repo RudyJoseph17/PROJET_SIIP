@@ -21,7 +21,8 @@ namespace InvestissementsPublics.Starter.Web.Data
             // =========================
             // 1. ROLES
             // =========================
-            var roles = new[] { "Gestionnaire systeme", "Admin" };
+            // UEP / DIP : examinateurs des fiches d'identification (module IdentificationProjet)
+            var roles = new[] { "Gestionnaire systeme", "Admin", "UEP", "DIP" };
 
             foreach (var roleName in roles)
             {
@@ -83,7 +84,10 @@ namespace InvestissementsPublics.Starter.Web.Data
             {
                 new Privilege { NomPrivilege = "BanqueProjet.Projet.Create", DescriptionPrivilege = "Créer un projet BanqueProjet" },
                 new Privilege { NomPrivilege = "BanqueProjet.Projet.Edit", DescriptionPrivilege = "Modifier un projet BanqueProjet" },
-                new Privilege { NomPrivilege = "Programmation.Prevision.Approve", DescriptionPrivilege = "Approuver une prévision" }
+                new Privilege { NomPrivilege = "Programmation.Prevision.Approve", DescriptionPrivilege = "Approuver une prévision" },
+                new Privilege { NomPrivilege = "IdentificationProjet.Fiche.Create", DescriptionPrivilege = "Créer et soumettre une fiche d'identification d'idée de projet" },
+                new Privilege { NomPrivilege = "IdentificationProjet.Fiche.ExamenUEP", DescriptionPrivilege = "Examiner les fiches d'identification (UEP)" },
+                new Privilege { NomPrivilege = "IdentificationProjet.Fiche.ExamenDIP", DescriptionPrivilege = "Examiner les fiches d'identification (DIP)" }
             };
 
             using var tx = await db.Database.BeginTransactionAsync();

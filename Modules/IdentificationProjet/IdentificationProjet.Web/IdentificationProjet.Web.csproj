@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <!-- Bibliothèque Razor : contrôleurs + vues de l'Area "IdentificationProjet",
+       chargée par le Starter via AddApplicationPart. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IdentificationProjet.Application\IdentificationProjet.Application.csproj" />
+    <ProjectReference Include="..\IdentificationProjet.Infrastructure\IdentificationProjet.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Shared.Domain\Shared.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
