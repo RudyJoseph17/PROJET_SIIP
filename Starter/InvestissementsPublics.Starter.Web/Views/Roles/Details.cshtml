@@ -11,7 +11,7 @@
         @if (Model.PeutSupprimer)
         {
             var avertissement = Model.EstSysteme
-                ? $"ATTENTION : « {r.Name} » est un rôle système utilisé par l'application. Le supprimer ? Il sera retiré à {Model.Utilisateurs.Count} utilisateur(s)."
+                ? $"ATTENTION : « {r.Name} » est un rôle système utilisé par l'application. Le supprimer ? Il sera retiré à {Model.Utilisateurs.Count} utilisateur(s), puis recréé sans utilisateurs au prochain démarrage de l'application."
                 : $"Supprimer le rôle « {r.Name} » ? Il sera retiré à {Model.Utilisateurs.Count} utilisateur(s).";
             <form asp-action="Delete" asp-route-id="@r.Id" method="post" class="d-inline" data-confirm="@avertissement">
                 <button type="submit" class="btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash-alt fa-sm mr-1"></i> Supprimer</button>
@@ -24,7 +24,7 @@
 @if (Model.EstSysteme)
 {
     <div class="alert alert-info"><i class="fas fa-lock mr-1"></i> Rôle système : utilisé par l'application, il ne peut pas être renommé.
-        @(Model.PeutSupprimer ? "Sa suppression est réservée au rôle Admin." : "Il ne peut être supprimé que par un utilisateur ayant le rôle Admin (le rôle Admin lui-même n'est pas supprimable).")
+        @(Model.PeutSupprimer ? "Sa suppression (réservée au rôle Admin) le retire à tous ses utilisateurs ; il est recréé, vide, au prochain démarrage de l'application." : "Il ne peut être supprimé que par un utilisateur ayant le rôle Admin (le rôle Admin lui-même n'est pas supprimable).")
         Ses privilèges restent modifiables.</div>
 }
 
