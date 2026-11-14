@@ -74,17 +74,22 @@
         <hr class="sidebar-divider" />
         <div class="sidebar-heading">Administration</div>
 
-        <li class="nav-item @Active("", "Role")">
-            <a class="nav-link @(Active("", "Role") == "" ? "collapsed" : "")" href="#" data-toggle="collapse" data-target="#collapseAdmin"
-               aria-expanded="@(Active("", "Role") != "" ? "true" : "false")" aria-controls="collapseAdmin">
+        var pagesSecurite = new[] { "Utilisateurs", "Roles", "Privileges", "Role" };
+        var securiteActive = currentArea == "" && pagesSecurite.Contains(currentController, StringComparer.OrdinalIgnoreCase);
+        string Item(string controleur) => securiteActive && string.Equals(currentController, controleur, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+
+        <li class="nav-item @(securiteActive ? "active" : "")">
+            <a class="nav-link @(securiteActive ? "" : "collapsed")" href="#" data-toggle="collapse" data-target="#collapseAdmin"
+               aria-expanded="@(securiteActive ? "true" : "false")" aria-controls="collapseAdmin">
                 <i class="fas fa-fw fa-users-cog"></i>
                 <span>Sécurité</span>
             </a>
-            <div id="collapseAdmin" class="collapse @(Active("", "Role") != "" ? "show" : "")" data-parent="#accordionSidebar">
+            <div id="collapseAdmin" class="collapse @(securiteActive ? "show" : "")" data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
                     <h6 class="collapse-header">Gestion des accès</h6>
-                    <a class="collapse-item" asp-area="" asp-controller="Role" asp-action="Admin">Utilisateurs &amp; rôles</a>
-                    <a class="collapse-item" asp-area="" asp-controller="Role" asp-action="Admin" asp-fragment="privileges">Privilèges</a>
+                    <a class="collapse-item @Item("Utilisateurs")" asp-area="" asp-controller="Utilisateurs" asp-action="Index">Utilisateurs</a>
+                    <a class="collapse-item @Item("Roles")" asp-area="" asp-controller="Roles" asp-action="Index">Rôles</a>
+                    <a class="collapse-item @Item("Privileges")" asp-area="" asp-controller="Privileges" asp-action="Index">Privilèges</a>
                 </div>
             </div>
         </li>

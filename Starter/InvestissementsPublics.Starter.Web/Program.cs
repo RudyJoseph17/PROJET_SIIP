@@ -36,6 +36,14 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
+// Pages de connexion / accès refusé de l'application (les valeurs par défaut d'Identity,
+// /Account/Login et /Account/AccessDenied, n'existent pas et renvoyaient une erreur 404)
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Home/Index";
+    options.AccessDeniedPath = "/Acces/Refuse";
+});
+
 builder.Services.AddRazorPages();
 
 builder.Services.AddScoped<IUserRegistrationService, UserRegistrationService>();

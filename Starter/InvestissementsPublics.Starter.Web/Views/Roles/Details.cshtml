@@ -1,0 +1,71 @@
+@model RoleDetailsViewModel
+@{
+    var r = Model.Role;
+    ViewData["Title"] = r.Name;
+    ViewData["Subtitle"] = "Sécurité — détails du rôle" + (Model.EstSysteme ? " (rôle système)" : "");
+}
+@section PageActions {
+    <div>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary shadow-sm"><i class="fas fa-arrow-left fa-sm mr-1"></i> Liste</a>
+        <a asp-action="Edit" asp-route-id="@r.Id" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-edit fa-sm mr-1"></i> Modifier</a>
+        @if (!Model.EstSysteme)
+        {
+            <form asp-action="Delete" asp-route-id="@r.Id" method="post" class="d-inline"
+                  data-confirm="Supprimer le rôle « @r.Name » ? Il sera retiré à @Model.Utilisateurs.Count utilisateur(s).">
+                <button type="submit" class="btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash-alt fa-sm mr-1"></i> Supprimer</button>
+            </form>
+        }
+    </div>
+}
+<partial name="Securite/_Onglets" />
+
+@if (Model.EstSysteme)
+{
+    <div class="alert alert-info"><i class="fas fa-lock mr-1"></i> Rôle système : utilisé par l'application, il ne peut être ni renommé ni supprimé. Ses privilèges restent modifiables.</div>
+}
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">Privilèges associés <span class="badge badge-secondary ml-1">@Model.Privileges.Count</span></div>
+            <div class="card-body">
+                @if (Model.Privileges.Count == 0)
+                {
+                    <p class="text-muted mb-0">Aucun privilège associé.</p>
+                }
+                else
+                {
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var p in Model.Privileges)
+                        {
+                            <li class="mb-2">
+                                <a asp-controller="Privileges" asp-action="Details" asp-route-id="@p.IdPrivilege" class="font-weight-bold">@p.NomPrivilege</a>
+                                @if (!string.IsNullOrWhiteSpace(p.DescriptionPrivilege)) { <div class="small text-muted">@p.DescriptionPrivilege</div> }
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">Utilisateurs ayant ce rôle <span class="badge badge-secondary ml-1">@Model.Utilisateurs.Count</span></div>
+            <div class="card-body">
+                @if (Model.Utilisateurs.Count == 0)
+                {
+                    <p class="text-muted mb-0">Aucun utilisateur.</p>
+                }
+                else
+                {
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var u in Model.Utilisateurs)
+                        {
+                            <li><a asp-controller="Utilisateurs" asp-action="Details" asp-route-id="@u.Id">@u.UserName</a> <span class="small text-muted">@u.Ministere</span></li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</div>

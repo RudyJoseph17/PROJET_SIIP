@@ -1,0 +1,33 @@
+@model List<RoleLigneViewModel>
+@{
+    ViewData["Title"] = "Rôles";
+    ViewData["Subtitle"] = "Sécurité — rôles et privilèges associés";
+}
+@section PageActions {
+    <a asp-action="Create" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm mr-1"></i> Nouveau rôle</a>
+}
+<partial name="Securite/_Onglets" />
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">Liste des rôles <span class="badge badge-secondary ml-1">@Model.Count</span></div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover datatable" data-page-length="25">
+                <thead><tr><th>Rôle</th><th>Utilisateurs</th><th>Privilèges</th></tr></thead>
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                        <tr class="ligne-lien" data-href="@Url.Action("Details", new { id = r.Id })">
+                            <td>
+                                <a asp-action="Details" asp-route-id="@r.Id" class="font-weight-bold">@r.Nom</a>
+                                @if (r.EstSysteme) { <span class="badge badge-light border ml-1" title="Utilisé par l'application : ni renommable ni supprimable">système</span> }
+                            </td>
+                            <td>@r.NbUtilisateurs</td>
+                            <td>@r.NbPrivileges</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

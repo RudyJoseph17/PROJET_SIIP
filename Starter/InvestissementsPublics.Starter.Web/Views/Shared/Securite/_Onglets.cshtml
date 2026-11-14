@@ -1,0 +1,10 @@
+@* Onglets des pages Sécurité *@
+@{
+    var c = ViewContext.RouteData.Values["controller"]?.ToString();
+    string Actif(string nom) => string.Equals(c, nom, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item"><a class="nav-link @Actif("Utilisateurs")" asp-controller="Utilisateurs" asp-action="Index"><i class="fas fa-users mr-1"></i> Utilisateurs</a></li>
+    <li class="nav-item"><a class="nav-link @Actif("Roles")" asp-controller="Roles" asp-action="Index"><i class="fas fa-user-tag mr-1"></i> Rôles</a></li>
+    <li class="nav-item"><a class="nav-link @Actif("Privileges")" asp-controller="Privileges" asp-action="Index"><i class="fas fa-key mr-1"></i> Privilèges</a></li>
+</ul>

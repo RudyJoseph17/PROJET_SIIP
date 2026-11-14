@@ -1,0 +1,35 @@
+@model List<UtilisateurLigneViewModel>
+@{
+    ViewData["Title"] = "Utilisateurs";
+    ViewData["Subtitle"] = "Sécurité — comptes d'accès au SIIP";
+}
+@section PageActions {
+    <a asp-action="Create" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-user-plus fa-sm mr-1"></i> Nouvel utilisateur</a>
+}
+<partial name="Securite/_Onglets" />
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">Liste des utilisateurs <span class="badge badge-secondary ml-1">@Model.Count</span></div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover datatable" data-page-length="25">
+                <thead>
+                    <tr><th>Nom d'utilisateur</th><th>Ministère</th><th>Entité</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in Model)
+                    {
+                        <tr class="ligne-lien" data-href="@Url.Action("Details", new { id = u.Id })">
+                            <td>
+                                <a asp-action="Details" asp-route-id="@u.Id" class="font-weight-bold">@u.NomUtilisateur</a>
+                                @if (!string.IsNullOrWhiteSpace(u.NomComplet)) { <div class="small text-muted">@u.NomComplet</div> }
+                            </td>
+                            <td>@u.Ministere</td>
+                            <td>@u.Entite</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

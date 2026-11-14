@@ -1,0 +1,16 @@
+@model PrivilegeFormViewModel
+@{
+    ViewData["Title"] = "Modification du privilège";
+    ViewData["Subtitle"] = Model.Nom;
+}
+<partial name="Securite/_Onglets" />
+<div class="card shadow mb-4" style="max-width:45rem">
+    <div class="card-body">
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+            <partial name="_Formulaire" model="Model" />
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Annuler</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i> Enregistrer</button>
+        </form>
+    </div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

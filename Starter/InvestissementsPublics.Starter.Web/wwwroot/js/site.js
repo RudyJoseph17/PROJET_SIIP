@@ -76,7 +76,17 @@
     });
 
     // -------------------------------------------------------------------------
-    // 7. Utilitaires exposés aux pages : SIIP.formatMontant(1234567) -> "1 234 567 HTG"
+    // 7. Lignes de tableau cliquables : <tr class="ligne-lien" data-href="/…">
+    //    (les liens, boutons et champs de la ligne gardent leur propre action)
+    // -------------------------------------------------------------------------
+    $(document).on("click", "tr[data-href]", function (e) {
+        if ($(e.target).closest("a, button, input, select, textarea, label").length) { return; }
+        var url = $(this).data("href");
+        if (e.ctrlKey || e.metaKey) { window.open(url, "_blank"); } else { window.location.href = url; }
+    });
+
+    // -------------------------------------------------------------------------
+    // 8. Utilitaires exposés aux pages : SIIP.formatMontant(1234567) -> "1 234 567 HTG"
     // -------------------------------------------------------------------------
     window.SIIP = window.SIIP || {};
     window.SIIP.formatMontant = function (value, devise) {

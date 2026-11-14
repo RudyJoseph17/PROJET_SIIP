@@ -1,0 +1,38 @@
+@model RoleFormViewModel
+@if (!ViewData.ModelState.IsValid)
+{
+    <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+}
+<div class="form-group" style="max-width:30rem">
+    <label asp-for="Nom"></label> <span class="text-danger">*</span>
+    @if (Model.EstSysteme)
+    {
+        <input asp-for="Nom" class="form-control" readonly />
+        <small class="form-text text-muted">Rôle système : son nom est utilisé par l'application et ne peut pas être modifié.</small>
+    }
+    else
+    {
+        <input asp-for="Nom" class="form-control" />
+    }
+    <span asp-validation-for="Nom" class="text-danger small champ-erreur"></span>
+</div>
+
+<div class="form-group">
+    <label class="d-block">Privilèges associés</label>
+    @if (Model.PrivilegesDisponibles.Count == 0)
+    {
+        <p class="text-muted small">Aucun privilège défini. <a asp-controller="Privileges" asp-action="Create">Créer un privilège</a></p>
+    }
+    <div class="border rounded p-2" style="max-height:24rem;overflow:auto">
+        @foreach (var p in Model.PrivilegesDisponibles)
+        {
+            var idCase = "priv_" + p.IdPrivilege;
+            <div class="custom-control custom-checkbox mb-1">
+                <input type="checkbox" class="custom-control-input" id="@idCase" name="PrivilegeIds" value="@p.IdPrivilege" checked="@Model.PrivilegeIds.Contains(p.IdPrivilege)" />
+                <label class="custom-control-label" for="@idCase"><strong>@p.NomPrivilege</strong>
+                    @if (!string.IsNullOrWhiteSpace(p.DescriptionPrivilege)) { <span class="text-muted"> — @p.DescriptionPrivilege</span> }
+                </label>
+            </div>
+        }
+    </div>
+</div>

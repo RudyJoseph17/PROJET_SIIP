@@ -1,0 +1,49 @@
+@model PrivilegeDetailsViewModel
+@{
+    var p = Model.Privilege;
+    ViewData["Title"] = p.NomPrivilege;
+    ViewData["Subtitle"] = "Sécurité — détails du privilège";
+}
+@section PageActions {
+    <div>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary shadow-sm"><i class="fas fa-arrow-left fa-sm mr-1"></i> Liste</a>
+        <a asp-action="Edit" asp-route-id="@p.IdPrivilege" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-edit fa-sm mr-1"></i> Modifier</a>
+        <form asp-action="Delete" asp-route-id="@p.IdPrivilege" method="post" class="d-inline"
+              data-confirm="Supprimer le privilège « @p.NomPrivilege » ? Il sera retiré de @Model.Roles.Count rôle(s).">
+            <button type="submit" class="btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash-alt fa-sm mr-1"></i> Supprimer</button>
+        </form>
+    </div>
+}
+<partial name="Securite/_Onglets" />
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">Informations</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Nom</dt><dd class="col-sm-8">@p.NomPrivilege</dd>
+                    <dt class="col-sm-4">Description</dt><dd class="col-sm-8">@(string.IsNullOrWhiteSpace(p.DescriptionPrivilege) ? "—" : p.DescriptionPrivilege)</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">Rôles disposant de ce privilège <span class="badge badge-secondary ml-1">@Model.Roles.Count</span></div>
+            <div class="card-body">
+                @if (Model.Roles.Count == 0)
+                {
+                    <p class="text-muted mb-0">Aucun rôle. Les privilèges s'attribuent depuis la page <a asp-controller="Roles" asp-action="Index">Rôles</a>.</p>
+                }
+                else
+                {
+                    @foreach (var r in Model.Roles)
+                    {
+                        <a asp-controller="Roles" asp-action="Details" asp-route-id="@r.Id" class="badge badge-primary p-2 mr-1 mb-1">@r.Name</a>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>

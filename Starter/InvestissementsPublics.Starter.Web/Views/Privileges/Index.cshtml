@@ -1,0 +1,30 @@
+@model List<PrivilegeLigneViewModel>
+@{
+    ViewData["Title"] = "Privilèges";
+    ViewData["Subtitle"] = "Sécurité — droits attribuables aux rôles";
+}
+@section PageActions {
+    <a asp-action="Create" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-plus fa-sm mr-1"></i> Nouveau privilège</a>
+}
+<partial name="Securite/_Onglets" />
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">Liste des privilèges <span class="badge badge-secondary ml-1">@Model.Count</span></div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover datatable" data-page-length="25">
+                <thead><tr><th>Privilège</th><th>Description</th><th>Rôles</th></tr></thead>
+                <tbody>
+                    @foreach (var p in Model)
+                    {
+                        <tr class="ligne-lien" data-href="@Url.Action("Details", new { id = p.Id })">
+                            <td><a asp-action="Details" asp-route-id="@p.Id" class="font-weight-bold">@p.Nom</a></td>
+                            <td>@p.Description</td>
+                            <td>@p.NbRoles</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

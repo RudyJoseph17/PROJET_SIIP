@@ -1,0 +1,55 @@
+@* Champs communs à « Nouvel utilisateur » et « Modification utilisateur » *@
+@model UtilisateurFormViewModel
+@if (!ViewData.ModelState.IsValid)
+{
+    <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+}
+<div class="form-row">
+    <div class="form-group col-md-6">
+        <label asp-for="NomUtilisateur"></label> <span class="text-danger">*</span>
+        <input asp-for="NomUtilisateur" class="form-control" autocomplete="off" />
+        <span asp-validation-for="NomUtilisateur" class="text-danger small champ-erreur"></span>
+    </div>
+    <div class="form-group col-md-6">
+        <label asp-for="Email"></label> <span class="text-danger">*</span>
+        <input asp-for="Email" class="form-control" type="email" autocomplete="off" />
+        <span asp-validation-for="Email" class="text-danger small champ-erreur"></span>
+    </div>
+    <div class="form-group col-md-6">
+        <label asp-for="Prenom"></label> <span class="text-danger">*</span>
+        <input asp-for="Prenom" class="form-control" />
+        <span asp-validation-for="Prenom" class="text-danger small champ-erreur"></span>
+    </div>
+    <div class="form-group col-md-6">
+        <label asp-for="Nom"></label> <span class="text-danger">*</span>
+        <input asp-for="Nom" class="form-control" />
+        <span asp-validation-for="Nom" class="text-danger small champ-erreur"></span>
+    </div>
+    <div class="form-group col-md-6">
+        <label asp-for="Ministere"></label> <span class="text-danger">*</span>
+        <input asp-for="Ministere" class="form-control" />
+        <span asp-validation-for="Ministere" class="text-danger small champ-erreur"></span>
+    </div>
+    <div class="form-group col-md-6">
+        <label asp-for="Entite"></label> <span class="text-danger">*</span>
+        <input asp-for="Entite" class="form-control" />
+        <span asp-validation-for="Entite" class="text-danger small champ-erreur"></span>
+    </div>
+</div>
+
+<div class="form-group">
+    <label class="d-block">Rôles</label>
+    <span asp-validation-for="RoleIds" class="text-danger small champ-erreur"></span>
+    <div class="row">
+        @foreach (var r in Model.RolesDisponibles)
+        {
+            var idCase = "role_" + r.Id;
+            <div class="col-md-4 col-sm-6">
+                <div class="custom-control custom-checkbox mb-1">
+                    <input type="checkbox" class="custom-control-input" id="@idCase" name="RoleIds" value="@r.Id" checked="@Model.RoleIds.Contains(r.Id)" />
+                    <label class="custom-control-label" for="@idCase">@r.Name</label>
+                </div>
+            </div>
+        }
+    </div>
+</div>

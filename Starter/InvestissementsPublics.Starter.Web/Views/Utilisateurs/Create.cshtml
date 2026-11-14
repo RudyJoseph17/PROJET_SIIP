@@ -1,0 +1,18 @@
+@model UtilisateurFormViewModel
+@{
+    ViewData["Title"] = "Nouvel utilisateur";
+    ViewData["Subtitle"] = "Sécurité — Utilisateurs";
+}
+<partial name="Securite/_Onglets" />
+<div class="card shadow mb-4" style="max-width:60rem">
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <partial name="_Formulaire" model="Model" />
+            <p class="small text-muted"><i class="fas fa-info-circle mr-1"></i>Le mot de passe provisoire est généré automatiquement
+                et affiché après la création ; l'utilisateur devra le changer à sa première connexion.</p>
+            <a asp-action="Index" class="btn btn-outline-secondary">Annuler</a>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i> Créer l'utilisateur</button>
+        </form>
+    </div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

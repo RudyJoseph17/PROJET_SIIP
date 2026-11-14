@@ -1,0 +1,64 @@
+@model UtilisateurDetailsViewModel
+@{
+    var u = Model.Utilisateur;
+    ViewData["Title"] = u.UserName;
+    ViewData["Subtitle"] = "Sécurité — détails de l'utilisateur";
+    string T(string? s) => string.IsNullOrWhiteSpace(s) ? "—" : s;
+}
+@section PageActions {
+    <div>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary shadow-sm"><i class="fas fa-arrow-left fa-sm mr-1"></i> Liste</a>
+        <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-edit fa-sm mr-1"></i> Modifier</a>
+        @if (!Model.EstUtilisateurCourant)
+        {
+            <form asp-action="Delete" asp-route-id="@u.Id" method="post" class="d-inline"
+                  data-confirm="Supprimer définitivement l'utilisateur « @u.UserName » ?">
+                <button type="submit" class="btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash-alt fa-sm mr-1"></i> Supprimer</button>
+            </form>
+        }
+    </div>
+}
+<partial name="Securite/_Onglets" />
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">Informations</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Nom d'utilisateur</dt><dd class="col-sm-8">@u.UserName</dd>
+                    <dt class="col-sm-4">Prénom et nom</dt><dd class="col-sm-8">@T($"{u.Prenom} {u.Nom}".Trim())</dd>
+                    <dt class="col-sm-4">Adresse électronique</dt><dd class="col-sm-8">@T(u.Email)</dd>
+                    <dt class="col-sm-4">Ministère</dt><dd class="col-sm-8">@T(u.Ministere)</dd>
+                    <dt class="col-sm-4">Entité</dt><dd class="col-sm-8">@T(u.Entite)</dd>
+                    <dt class="col-sm-4">Mot de passe</dt>
+                    <dd class="col-sm-8">@(u.MustChangePassword ? "Provisoire (à changer à la prochaine connexion)" : "Personnalisé")</dd>
+                    <dt class="col-sm-4">Verrouillage</dt>
+                    <dd class="col-sm-8">@(u.LockoutEnd > DateTimeOffset.UtcNow ? $"Verrouillé jusqu'au {u.LockoutEnd:dd/MM/yyyy HH:mm}" : "Actif")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">Rôles <span class="badge badge-secondary ml-1">@Model.Roles.Count</span></div>
+            <div class="card-body">
+                @if (Model.Roles.Count == 0)
+                {
+                    <p class="text-muted mb-0">Aucun rôle attribué.</p>
+                }
+                else
+                {
+                    @foreach (var r in Model.Roles)
+                    {
+                        <span class="badge badge-primary p-2 mr-1 mb-1">@r</span>
+                    }
+                }
+            </div>
+        </div>
+        @if (Model.EstUtilisateurCourant)
+        {
+            <p class="small text-muted"><i class="fas fa-info-circle mr-1"></i>Il s'agit de votre propre compte : il ne peut pas être supprimé ici.</p>
+        }
+    </div>
+</div>

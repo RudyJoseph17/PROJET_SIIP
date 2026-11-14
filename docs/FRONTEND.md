@@ -72,6 +72,7 @@ Conventions fournies par `site.js` :
 | `<table class="datatable">`         | DataTables en français (tri, recherche, pagination)         |
 | `data-page-length`, `data-order`    | options DataTables par attribut                             |
 | `<form data-confirm="Supprimer ?">` | demande de confirmation avant envoi                         |
+| `<tr data-href="/…">`               | ligne de tableau cliquable (Ctrl+clic : nouvel onglet)      |
 | `data-toggle="tooltip"`             | infobulle Bootstrap                                         |
 | `SIIP.formatMontant(n, "HTG")`      | formatage `1 234 567 HTG`                                   |
 | `SIIP.colors`                       | palette pour Chart.js                                       |
