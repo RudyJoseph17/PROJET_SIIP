@@ -8,10 +8,12 @@
     <div>
         <a asp-action="Index" class="btn btn-sm btn-outline-secondary shadow-sm"><i class="fas fa-arrow-left fa-sm mr-1"></i> Liste</a>
         <a asp-action="Edit" asp-route-id="@r.Id" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-edit fa-sm mr-1"></i> Modifier</a>
-        @if (!Model.EstSysteme)
+        @if (Model.PeutSupprimer)
         {
-            <form asp-action="Delete" asp-route-id="@r.Id" method="post" class="d-inline"
-                  data-confirm="Supprimer le rôle « @r.Name » ? Il sera retiré à @Model.Utilisateurs.Count utilisateur(s).">
+            var avertissement = Model.EstSysteme
+                ? $"ATTENTION : « {r.Name} » est un rôle système utilisé par l'application. Le supprimer ? Il sera retiré à {Model.Utilisateurs.Count} utilisateur(s)."
+                : $"Supprimer le rôle « {r.Name} » ? Il sera retiré à {Model.Utilisateurs.Count} utilisateur(s).";
+            <form asp-action="Delete" asp-route-id="@r.Id" method="post" class="d-inline" data-confirm="@avertissement">
                 <button type="submit" class="btn btn-sm btn-danger shadow-sm"><i class="fas fa-trash-alt fa-sm mr-1"></i> Supprimer</button>
             </form>
         }
@@ -21,7 +23,9 @@
 
 @if (Model.EstSysteme)
 {
-    <div class="alert alert-info"><i class="fas fa-lock mr-1"></i> Rôle système : utilisé par l'application, il ne peut être ni renommé ni supprimé. Ses privilèges restent modifiables.</div>
+    <div class="alert alert-info"><i class="fas fa-lock mr-1"></i> Rôle système : utilisé par l'application, il ne peut pas être renommé.
+        @(Model.PeutSupprimer ? "Sa suppression est réservée au rôle Admin." : "Il ne peut être supprimé que par un utilisateur ayant le rôle Admin (le rôle Admin lui-même n'est pas supprimable).")
+        Ses privilèges restent modifiables.</div>
 }
 
 <div class="row">

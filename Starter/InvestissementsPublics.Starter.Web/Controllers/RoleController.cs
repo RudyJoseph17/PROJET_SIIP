@@ -8,7 +8,7 @@ namespace InvestissementsPublics.Starter.Web.Controllers
     /// Ancienne page « Administration utilisateurs, rôles et privilèges » (/Role/Admin),
     /// remplacée par les pages Utilisateurs, Rôles et Privilèges. Conservée pour les liens existants.
     /// </summary>
-    [Authorize(Roles = RolesSecurite.Administrateurs)]
+    [AdministrationUniquement]
     public class RoleController : Controller
     {
         public IActionResult Admin() => RedirectToAction("Index", "Utilisateurs");

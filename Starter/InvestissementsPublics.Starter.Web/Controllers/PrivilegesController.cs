@@ -9,7 +9,7 @@ using Shared.Infrastructure;
 namespace InvestissementsPublics.Starter.Web.Controllers
 {
     /// <summary>Sécurité — gestion des privilèges (attribués aux rôles depuis la page Rôles).</summary>
-    [Authorize(Roles = RolesSecurite.Administrateurs)]
+    [AdministrationUniquement]
     public class PrivilegesController : Controller
     {
         private readonly ApplicationDbContext _context;

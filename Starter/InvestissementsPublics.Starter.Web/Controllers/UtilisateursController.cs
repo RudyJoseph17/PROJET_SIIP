@@ -10,7 +10,7 @@ using Shared.Domain.Interfaces;
 namespace InvestissementsPublics.Starter.Web.Controllers
 {
     /// <summary>Sécurité — gestion des utilisateurs.</summary>
-    [Authorize(Roles = RolesSecurite.Administrateurs)]
+    [AdministrationUniquement]
     public class UtilisateursController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;

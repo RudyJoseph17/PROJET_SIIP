@@ -10,7 +10,7 @@ using Shared.Infrastructure;
 namespace InvestissementsPublics.Starter.Web.Controllers
 {
     /// <summary>Sécurité — gestion des rôles et de leurs privilèges.</summary>
-    [Authorize(Roles = RolesSecurite.Administrateurs)]
+    [AdministrationUniquement]
     public class RolesController : Controller
     {
         private readonly RoleManager<ApplicationRole> _roleManager;
@@ -56,6 +56,7 @@ namespace InvestissementsPublics.Starter.Web.Controllers
                                            .OrderBy(p => p.NomPrivilege).ToListAsync(),
                 Utilisateurs = (await _userManager.GetUsersInRoleAsync(role.Name ?? "")).OrderBy(u => u.UserName).ToList(),
                 EstSysteme = RolesSecurite.EstSysteme(role.Name),
+                PeutSupprimer = RolesSecurite.PeutSupprimer(role.Name, User.IsInRole(RolesSecurite.Admin)),
             });
         }
 
@@ -133,9 +134,11 @@ namespace InvestissementsPublics.Starter.Web.Controllers
         {
             var role = await _roleManager.FindByIdAsync(id);
             if (role is null) return NotFound();
-            if (RolesSecurite.EstSysteme(role.Name))
+            if (!RolesSecurite.PeutSupprimer(role.Name, User.IsInRole(RolesSecurite.Admin)))
             {
-                TempData["Error"] = $"Le rôle « {role.Name} » est un rôle système : il ne peut pas être supprimé.";
+                TempData["Error"] = string.Equals(role.Name, RolesSecurite.Admin, StringComparison.OrdinalIgnoreCase)
+                    ? "Le rôle Admin ne peut pas être supprimé."
+                    : $"Le rôle « {role.Name} » est un rôle système : seul un utilisateur ayant le rôle Admin peut le supprimer.";
                 return RedirectToAction(nameof(Details), new { id });
             }
 

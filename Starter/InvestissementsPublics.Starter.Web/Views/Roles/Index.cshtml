@@ -20,7 +20,7 @@
                         <tr class="ligne-lien" data-href="@Url.Action("Details", new { id = r.Id })">
                             <td>
                                 <a asp-action="Details" asp-route-id="@r.Id" class="font-weight-bold">@r.Nom</a>
-                                @if (r.EstSysteme) { <span class="badge badge-light border ml-1" title="Utilisé par l'application : ni renommable ni supprimable">système</span> }
+                                @if (r.EstSysteme) { <span class="badge badge-light border ml-1" title="Utilisé par l'application : non renommable, supprimable uniquement par le rôle Admin">système</span> }
                             </td>
                             <td>@r.NbUtilisateurs</td>
                             <td>@r.NbPrivileges</td>

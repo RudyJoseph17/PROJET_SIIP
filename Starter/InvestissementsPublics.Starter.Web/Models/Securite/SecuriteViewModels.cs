@@ -93,6 +93,7 @@ namespace InvestissementsPublics.Starter.Web.Models.Securite
         public List<Privilege> Privileges { get; init; } = new();
         public List<ApplicationUser> Utilisateurs { get; init; } = new();
         public bool EstSysteme { get; init; }
+        public bool PeutSupprimer { get; init; }
     }
 
     // ============================================================ Privilèges

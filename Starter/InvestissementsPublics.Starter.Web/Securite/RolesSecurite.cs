@@ -21,5 +21,14 @@ namespace InvestissementsPublics.Starter.Web.Securite
         };
 
         public static bool EstSysteme(string? nomRole) => nomRole is not null && Systeme.Contains(nomRole);
+
+        /// <summary>
+        /// Suppression d'un rôle : tout administrateur pour un rôle ordinaire ; seul le rôle Admin
+        /// peut supprimer un rôle système (rôles encore en cours de définition). Le rôle Admin
+        /// lui-même n'est jamais supprimable (il donne accès à cette page).
+        /// </summary>
+        public static bool PeutSupprimer(string? nomRole, bool utilisateurEstAdmin) =>
+            !string.Equals(nomRole, Admin, StringComparison.OrdinalIgnoreCase)
+            && (!EstSysteme(nomRole) || utilisateurEstAdmin);
     }
 }
