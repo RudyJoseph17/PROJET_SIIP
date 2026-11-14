@@ -29,6 +29,10 @@ a { color: var(--siip-primary-light); }
 
 /* 2. Sidebar ---------------------------------------------------------------- */
 .sidebar .sidebar-brand-icon { color: var(--siip-accent); }
+.sidebar .sidebar-brand-logo {
+  width: 2.5rem; height: 2.5rem; object-fit: contain;
+  background: #fff; border-radius: .5rem; padding: .15rem;
+}
 .sidebar .nav-item.disabled .nav-link { opacity: .55; pointer-events: none; }
 .sidebar .nav-item .nav-link .badge-soon { float: right; margin-top: .2rem; font-size: .7rem; opacity: .8; }
 .sidebar.toggled .badge-soon { display: none; }
@@ -48,6 +52,10 @@ a { color: var(--siip-primary-light); }
   color: #fff;
 }
 .auth-side-content { padding: 3rem; }
+.auth-logos { display: flex; align-items: center; gap: 1rem; }
+.auth-logos img { background: #fff; border-radius: .75rem; padding: .4rem; object-fit: contain; }
+.auth-armoiries { height: 6rem; width: auto; }
+.auth-logo-mpce { height: 6rem; width: 6rem; }
 .auth-side li { padding: .25rem 0; opacity: .9; }
 
 /* 5. Composants ------------------------------------------------------------- */
