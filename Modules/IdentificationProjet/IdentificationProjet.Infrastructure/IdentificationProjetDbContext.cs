@@ -25,6 +25,9 @@ public class IdentificationProjetDbContext : DbContext
     public DbSet<GrilleAnalyse> Grilles => Set<GrilleAnalyse>();
     public DbSet<PisteGrille> PistesGrille => Set<PisteGrille>();
     public DbSet<ReponseGrille> ReponsesGrille => Set<ReponseGrille>();
+    public DbSet<EtudeProjet> Etudes => Set<EtudeProjet>();
+    public DbSet<DocumentEtude> DocumentsEtude => Set<DocumentEtude>();
+    public DbSet<AvisEtude> Avis => Set<AvisEtude>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -49,6 +52,16 @@ public class IdentificationProjetDbContext : DbContext
         });
         b.Entity<PisteGrille>().ToView("V_IP_GRILLE_PISTE").HasKey(x => new { x.IdGrille, x.Ordre });
         b.Entity<ReponseGrille>().ToView("V_IP_GRILLE_REPONSE").HasKey(x => new { x.IdGrille, x.Numero });
+
+        // v3 : études (préfaisabilité, faisabilité, études de projet) et avis du MPCE
+        b.Entity<EtudeProjet>(e =>
+        {
+            e.ToView("V_IP_ETUDE").HasKey(x => x.IdEtude);
+            e.HasMany(x => x.Documents).WithOne().HasForeignKey(d => d.IdEtude);
+            e.HasMany(x => x.Avis).WithOne().HasForeignKey(a => a.IdEtude);
+        });
+        b.Entity<DocumentEtude>().ToView("V_IP_ETUDE_DOCUMENT").HasKey(x => x.IdDocument);
+        b.Entity<AvisEtude>().ToView("V_IP_AVIS").HasKey(x => x.IdAvis);
 
         // Convention Oracle : PropriétéPascal -> COLONNE_MAJUSCULE ; booléens en NUMBER(1)
         var boolConverter = new BoolToZeroOneConverter<short>();

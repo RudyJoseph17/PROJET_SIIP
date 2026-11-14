@@ -12,7 +12,7 @@ namespace IdentificationProjet.Infrastructure;
 /// </summary>
 internal sealed class PackageOracle
 {
-    private const string Package = "PKG_IP_IDENTIFICATION.";
+    private const string PackageParDefaut = "PKG_IP_IDENTIFICATION";
     private readonly IdentificationProjetDbContext _db;
 
     public PackageOracle(IdentificationProjetDbContext db) => _db = db;
@@ -47,11 +47,12 @@ internal sealed class PackageOracle
         }
     }
 
+    /// <summary>Procédure de PKG_IP_IDENTIFICATION, ou « PACKAGE.PROCEDURE » pour un autre package.</summary>
     public static OracleCommand Proc(OracleTransaction tx, string procedure)
     {
         var cmd = tx.Connection.CreateCommand();
         cmd.Transaction = tx;
-        cmd.CommandText = Package + procedure;
+        cmd.CommandText = procedure.Contains('.') ? procedure : PackageParDefaut + "." + procedure;
         cmd.CommandType = CommandType.StoredProcedure;
         cmd.BindByName = true;
         return cmd;

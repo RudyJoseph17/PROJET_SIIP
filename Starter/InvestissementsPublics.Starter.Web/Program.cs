@@ -1,6 +1,7 @@
 using InvestissementsPublics.Starter.Web.Data;
 using InvestissementsPublics.Starter.Web.Controllers;
 using InvestissementsPublics.Starter.Web.Service;
+using BanqueProjet.Infrastructure;
 using IdentificationProjet.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -16,6 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews()
 .AddApplicationPart(typeof(TableauxDeBord.Web.Areas.TableauxDeBord.Controllers.HomeController).Assembly)
 .AddApplicationPart(typeof(IdentificationProjet.Web.Areas.IdentificationProjet.Controllers.FichesController).Assembly)
+.AddApplicationPart(typeof(BanqueProjet.Web.Areas.BanqueProjet.Controllers.ProjetsController).Assembly)
 //.AddApplicationPart(typeof(InvestissementsPublics.Starter.Web.Controllers.RoleController).Assembly)
 .AddRazorRuntimeCompilation();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
@@ -24,6 +26,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Module "Identification projet" (tables objet Oracle : Modules/IdentificationProjet/Database)
 builder.Services.AddIdentificationProjet(builder.Configuration.GetConnectionString("DefaultConnection")!);
+// Module "Banque de projets" (projets validés : vue V_BP_PROJET_VALIDE)
+builder.Services.AddBanqueProjet(builder.Configuration.GetConnectionString("DefaultConnection")!);
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 {

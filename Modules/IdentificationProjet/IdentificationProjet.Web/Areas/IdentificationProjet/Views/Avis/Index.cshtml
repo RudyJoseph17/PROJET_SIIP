@@ -1,0 +1,51 @@
+@model ListeAvisViewModel
+@{
+    ViewData["Title"] = "Avis sur les études";
+    ViewData["Subtitle"] = "MPCE / DIP — préfaisabilité, faisabilité et études de projet";
+    ViewData["AvisATraiter"] = Model.ATraiter.Count;
+
+    async Task Tableau(List<AvisEtude> avis, string vide, bool resultat)
+    {
+        if (avis.Count == 0)
+        {
+            <p class="text-muted mb-0">@vide</p>
+            await Task.CompletedTask; return;
+        }
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover datatable" data-page-length="25">
+                <thead>
+                    <tr><th>Projet</th><th>Phase</th><th>Ministère / Institution</th><th>Reçu le</th><th>Statut</th>
+                        @if (resultat) { <th>Résultat</th> }<th></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in avis)
+                    {
+                        <tr>
+                            <td class="text-nowrap">@a.CodeFiche<div class="small text-muted">@a.TitreProjet</div></td>
+                            <td>@PhaseProjet.Libelle(a.Phase)<div class="small text-muted">Avis n° @a.Numero</div></td>
+                            <td>@a.NomOrganisation</td>
+                            <td data-order="@a.DateCreation.ToString("s")">@a.DateCreation.ToString("dd/MM/yyyy")</td>
+                            <td><span class="badge badge-@StatutGrille.Couleur(a.Statut)">@StatutGrille.Libelle(a.Statut)</span></td>
+                            @if (resultat) { <td class="small">@DecisionGrille.LibelleEtude(a.Decision)</td> }
+                            <td class="text-right"><a asp-action="Details" asp-route-id="@a.IdAvis" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye fa-sm"></i> Ouvrir</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+<partial name="_NavModule" />
+
+<div class="card shadow mb-4 border-left-warning">
+    <div class="card-header py-3"><i class="fas fa-inbox mr-1"></i> À traiter <span class="badge badge-warning">@Model.ATraiter.Count</span></div>
+    <div class="card-body">@{ await Tableau(Model.ATraiter, "Aucun avis en attente de votre action.", false); }</div>
+</div>
+<div class="card shadow mb-4">
+    <div class="card-header py-3"><i class="fas fa-hourglass-half mr-1"></i> En cours (autres étapes)</div>
+    <div class="card-body">@{ await Tableau(Model.EnCours, "Aucun autre avis en cours.", false); }</div>
+</div>
+<div class="card shadow mb-4">
+    <div class="card-header py-3"><i class="fas fa-archive mr-1"></i> Avis approuvés</div>
+    <div class="card-body">@{ await Tableau(Model.Approuves, "Aucun avis approuvé.", true); }</div>
+</div>

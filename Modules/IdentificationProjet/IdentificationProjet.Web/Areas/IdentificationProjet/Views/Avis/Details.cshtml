@@ -1,0 +1,115 @@
+@model DetailsAvisViewModel
+@{
+    var a = Model.Avis;
+    var e = Model.Etude;
+    ViewData["Title"] = $"Avis — {PhaseProjet.Libelle(e.Phase)}";
+    ViewData["Subtitle"] = $"{e.CodeFiche} · avis n° {a.Numero} · {StatutGrille.Libelle(a.Statut)}";
+    string D(DateTime? d) => d?.ToString("dd/MM/yyyy") ?? "";
+    var actions = Model.Actions.Where(x => x != ActionGrille.AnalysteTransmettre).ToList();
+}
+@section PageActions {
+    <div>
+        <button type="button" class="btn btn-sm btn-outline-secondary shadow-sm" onclick="window.print()"><i class="fas fa-print fa-sm mr-1"></i> Imprimer</button>
+        @if (Model.PeutSaisir)
+        {
+            <a asp-action="Edit" asp-route-id="@a.IdAvis" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-edit fa-sm mr-1"></i> Rédiger l'avis</a>
+        }
+    </div>
+}
+<partial name="_NavModule" />
+<div class="row">
+    <div class="col-xl-9 col-lg-8">
+        @if (actions.Count > 0)
+        {
+            var directeur = a.Statut == StatutGrille.AuDirecteur;
+            <div class="card shadow mb-4 border-left-warning d-print-none">
+                <div class="card-body">
+                    <h6 class="font-weight-bold"><i class="fas fa-stamp mr-1"></i> @(directeur ? "Vu et approuvé" : "Validation du Chef de Service")</h6>
+                    @if (directeur)
+                    {
+                        <p class="small mb-2">Résultat proposé : <strong>@DecisionGrille.LibelleEtude(a.Decision)</strong>.
+                            @if (a.Decision == DecisionGrille.Accepte)
+                            {
+                                @(e.Phase == PhaseProjet.EtudesProjet ? "L'approbation validera définitivement le projet (Banque de projets)." : "L'approbation ouvrira la phase suivante.")
+                            }
+                        </p>
+                    }
+                    <form asp-action="Traiter" asp-route-id="@a.IdAvis" method="post">
+                        <div class="form-group">
+                            <label for="commentaire">Commentaire <span class="small text-muted">(obligatoire pour un renvoi à l'analyste)</span></label>
+                            <textarea id="commentaire" name="commentaire" class="form-control" rows="2" maxlength="4000"></textarea>
+                        </div>
+                        @foreach (var op in actions)
+                        {
+                            var renvoi = op is ActionGrille.ChefRenvoyer or ActionGrille.DirecteurRenvoyer;
+                            <button type="submit" name="operation" value="@op" class="btn btn-@(renvoi ? "outline-danger" : "success") mr-1 mb-1"
+                                    data-message="@ActionGrille.Libelle(op) : confirmer ?" onclick="return confirm(this.dataset.message);">
+                                <i class="fas @(renvoi ? "fa-reply" : "fa-check") mr-1"></i> @ActionGrille.Libelle(op)
+                            </button>
+                        }
+                    </form>
+                </div>
+            </div>
+        }
+        else if (Model.PeutSaisir)
+        {
+            <div class="alert alert-info d-print-none"><i class="fas fa-pen mr-1"></i> Avis en cours d'analyse.
+                <a asp-action="Edit" asp-route-id="@a.IdAvis" class="alert-link">Rédiger l'avis</a></div>
+        }
+        @if (Model.Echanges.Count > 0)
+        {
+            <div class="alert alert-warning d-print-none">
+                <div class="font-weight-bold mb-1"><i class="fas fa-comments mr-1"></i> Échanges internes</div>
+                @foreach (var h in Model.Echanges)
+                {
+                    <div class="small">@h.DateAction.ToString("dd/MM/yyyy HH:mm") · <strong>@h.ActeurNom</strong> — @ActionFiche.Libelle(h.Action) : @h.Commentaire</div>
+                }
+            </div>
+        }
+
+        <partial name="_EtudeResume" model="e" />
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">Avis du MPCE</div>
+            <div class="card-body">
+                <table class="table table-bordered table-sm">
+                    <tr><th style="width:30%">Avis de l'analyse</th><td style="white-space:pre-line">@a.Commentaire</td></tr>
+                    <tr><th>Résultat de l'analyse</th><td class="font-weight-bold">@DecisionGrille.LibelleEtude(a.Decision)</td></tr>
+                    <tr><th>Recommandations</th><td style="white-space:pre-line">@a.Recommandations</td></tr>
+                </table>
+                <table class="table table-bordered table-sm mb-0">
+                    <thead class="thead-light"><tr><th></th><th>Nom</th><th style="width:9rem">Le</th></tr></thead>
+                    <tbody>
+                        <tr><th>Analyste de projet</th><td>@a.AnalysteNom</td><td>@D(a.DateAnalyste)</td></tr>
+                        <tr><th>Chef de Service</th><td>@a.ChefNom</td><td>@D(a.DateChef)</td></tr>
+                        <tr><th>Vu et approuvé par</th><td>@a.DirecteurNom</td><td>@D(a.DateDirecteur)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">Circuit de l'avis</div>
+            <div class="card-body small">
+                @{
+                    var etapes = new[] { ("Analyste de projet", a.DateAnalyste, StatutGrille.EnAnalyse),
+                                         ("Chef de Service", a.DateChef, StatutGrille.AuChefService),
+                                         ("Vu et approuvé (Directeur)", a.DateDirecteur, StatutGrille.AuDirecteur) };
+                }
+                <ol class="list-unstyled mb-2">
+                    @foreach (var (libelle, date, statut) in etapes)
+                    {
+                        var fait = date is not null; var enCours = a.Statut == statut;
+                        <li class="mb-2"><i class="fas fa-fw @(fait ? "fa-check-circle text-success" : enCours ? "fa-dot-circle text-primary" : "fa-circle text-gray-300")"></i>
+                            <span class="@(enCours ? "font-weight-bold" : "")">@libelle</span> @if (fait) { <span class="text-muted">— @D(date)</span> }</li>
+                    }
+                </ol>
+                @if (a.Statut != StatutGrille.Approuvee && a.Anomalie is not null)
+                {
+                    <p class="text-muted mb-0"><i class="fas fa-info-circle mr-1"></i>À compléter : @a.Anomalie</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

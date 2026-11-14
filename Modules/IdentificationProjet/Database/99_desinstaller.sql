@@ -11,11 +11,15 @@ DECLARE
         WHEN OTHERS THEN NULL;   -- objet déjà absent
     END;
 BEGIN
+    executer('DROP PACKAGE pkg_ip_etude');
     executer('DROP PACKAGE pkg_ip_identification');
-    FOR v IN (SELECT view_name FROM user_views WHERE view_name LIKE 'V\_IP\_%' ESCAPE '\') LOOP
+    FOR v IN (SELECT view_name FROM user_views WHERE view_name LIKE 'V\_IP\_%' ESCAPE '\' OR view_name = 'V_BP_PROJET_VALIDE') LOOP
         executer('DROP VIEW ' || v.view_name);
     END LOOP;
     -- Tables : les dépendantes d'abord
+    executer('DROP TABLE tb_ip_avis PURGE');
+    executer('DROP TABLE tb_ip_etude_document PURGE');
+    executer('DROP TABLE tb_ip_etude PURGE');
     executer('DROP TABLE tb_ip_grille PURGE');
     executer('DROP TABLE tb_ip_historique PURGE');
     executer('DROP TABLE tb_ip_annexe PURGE');
@@ -27,6 +31,9 @@ BEGIN
         executer('DROP SEQUENCE ' || s.sequence_name);
     END LOOP;
     -- Types : les composites avant leurs composants
+    executer('DROP TYPE t_ip_avis FORCE');
+    executer('DROP TYPE t_ip_etude_document FORCE');
+    executer('DROP TYPE t_ip_etude FORCE');
     executer('DROP TYPE t_ip_grille FORCE');
     executer('DROP TYPE t_ip_reponse_tab FORCE');
     executer('DROP TYPE t_ip_reponse FORCE');

@@ -88,6 +88,14 @@ public static class ActionFiche
         DipComplement => "À corriger : renvoyée au promoteur par le MPCE",
         DipRejeter => "Rejetée par le MPCE",
         "GRILLE_GENEREE" => "Grille d'analyse générée",
+        "OUVERTURE" => "Ouverture de la phase",
+        "AVIS_GENERE" => "Avis du MPCE à rédiger",
+        "AVIS_" + ActionGrille.AnalysteTransmettre => "Avis transmis au Chef de Service",
+        "AVIS_" + ActionGrille.ChefValider => "Avis validé par le Chef de Service",
+        "AVIS_" + ActionGrille.ChefRenvoyer => "Avis renvoyé à l'analyste (Chef de Service)",
+        "AVIS_" + ActionGrille.DirecteurApprouver => "Avis approuvé (Vu et approuvé)",
+        "AVIS_" + ActionGrille.DirecteurRenvoyer => "Avis renvoyé à l'analyste (Directeur)",
+        "PROJET_VALIDE" => "Projet validé — inscrit à la Banque de projets",
         "GRILLE_" + ActionGrille.AnalysteTransmettre => "Grille transmise au Chef de Service",
         "GRILLE_" + ActionGrille.ChefValider => "Grille validée par le Chef de Service",
         "GRILLE_" + ActionGrille.ChefRenvoyer => "Grille renvoyée à l'analyste (Chef de Service)",
@@ -97,7 +105,17 @@ public static class ActionFiche
     };
 
     /// <summary>Étapes internes du MPCE (grille), masquées au promoteur.</summary>
-    public static bool EstInterneMpce(string action) => action.StartsWith("GRILLE_", StringComparison.Ordinal);
+    public static bool EstInterneMpce(string action) =>
+        action.StartsWith("GRILLE_", StringComparison.Ordinal) || action.StartsWith("AVIS_", StringComparison.Ordinal);
+
+    /// <summary>Libellé d'une action dans l'historique d'une phase d'études (phase non nulle).</summary>
+    public static string Libelle(string action, string? phase) =>
+        phase is null ? Libelle(action) : action switch
+        {
+            DipApprouver => phase == PhaseProjet.EtudesProjet ? "Validée par le MPCE (validation finale)" : "Validée par le MPCE (phase suivante ouverte)",
+            DipComplement => "À corriger : renvoyée au promoteur par le MPCE",
+            _ => Libelle(action)
+        };
 
     public static bool CommentaireObligatoire(string action) =>
         action is UepComplement or UepRejeter or DipComplement or DipRejeter;

@@ -1,0 +1,32 @@
+@* Liste des pièces jointes d'une étude ; ViewData["SupprimerDocuments"] = true : bouton de retrait (dans le formulaire Edit) *@
+@model EtudeProjet
+@{
+    var suppression = ViewData["SupprimerDocuments"] is true;
+    string Taille(long o) => o < 1024 ? $"{o} o" : o < 1048576 ? $"{o / 1024.0:N0} Ko" : $"{o / 1048576.0:N1} Mo";
+}
+@if (Model.Documents.Count == 0)
+{
+    <p class="text-muted font-italic small mb-0">Aucune pièce jointe.</p>
+}
+else
+{
+    <ul class="list-group mb-0">
+        @foreach (var d in Model.Documents)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-file-alt text-gray-500 mr-2"></i>
+                    <a asp-controller="Etudes" asp-action="Document" asp-route-id="@Model.IdEtude" asp-route-idDocument="@d.IdDocument">@d.NomFichier</a>
+                    <span class="small text-muted ml-1">(@Taille(d.Taille) · @d.DateAjout.ToString("dd/MM/yyyy") · @d.AjoutePar)</span>
+                    @if (!string.IsNullOrWhiteSpace(d.Description)) { <div class="small text-muted">@d.Description</div> }
+                </div>
+                @if (suppression)
+                {
+                    <button type="submit" name="commande" value="supprimer-document-@d.IdDocument" class="btn btn-sm btn-outline-danger"
+                            formnovalidate data-message="Retirer le document « @d.NomFichier » ?" onclick="return confirm(this.dataset.message);"
+                            title="Retirer ce document" aria-label="Retirer @d.NomFichier"><i class="fas fa-trash-alt"></i></button>
+                }
+            </li>
+        }
+    </ul>
+}

@@ -23,14 +23,16 @@ public class FichesController : ModuleControllerBase
 
     private readonly IFicheIdentificationRepository _repo;
     private readonly IGrilleAnalyseRepository _grilles;
+    private readonly IEtudeRepository _etudes;
     private readonly IMemoryCache _cache;
     private readonly ILogger<FichesController> _logger;
 
-    public FichesController(IFicheIdentificationRepository repo, IGrilleAnalyseRepository grilles, IMemoryCache cache,
-                            UserManager<ApplicationUser> users, ILogger<FichesController> logger) : base(users)
+    public FichesController(IFicheIdentificationRepository repo, IGrilleAnalyseRepository grilles, IEtudeRepository etudes,
+                            IMemoryCache cache, UserManager<ApplicationUser> users, ILogger<FichesController> logger) : base(users)
     {
         _repo = repo;
         _grilles = grilles;
+        _etudes = etudes;
         _cache = cache;
         _logger = logger;
     }
@@ -53,12 +55,19 @@ public class FichesController : ModuleControllerBase
             vm.AExaminer = (await _repo.ListerParStatutsAsync(new[] { StatutFiche.SoumiseUep }, ministere, ct))
                 .Where(f => ReglesAcces.ActionsExamen(f, u).Count > 0)
                 .ToList();
+            vm.EtudesAExaminer = (await _etudes.ListerParStatutsAsync(new[] { StatutFiche.SoumiseUep }, ministere, ct))
+                .Where(e => ReglesEtude.ActionsExamen(e, u).Count > 0)
+                .ToList();
         }
 
         var statutsGrille = ReglesGrille.StatutsATraiter(u);
         if (statutsGrille.Count > 0)
+        {
             vm.GrillesATraiter = (await _grilles.ListerAsync(statutsGrille, ct))
                 .Count(g => ReglesGrille.Actions(g, u).Count > 0);
+            vm.AvisATraiter = (await _etudes.ListerAvisAsync(statutsGrille, ct))
+                .Count(a => ReglesGrille.Actions(a, u).Count > 0);
+        }
         return View(vm);
     }
 
@@ -155,7 +164,11 @@ public class FichesController : ModuleControllerBase
         if (!ReglesAcces.PeutConsulter(fiche, u)) return Forbid();
         var grilles = (await _grilles.ListerParFicheAsync(id, ct))
             .Where(g => ReglesGrille.PeutConsulter(g, fiche, u)).ToList();
-        return View(new DetailsFicheViewModel { Fiche = fiche, Utilisateur = u, Grilles = grilles });
+        return View(new DetailsFicheViewModel
+        {
+            Fiche = fiche, Utilisateur = u, Grilles = grilles,
+            Etudes = await _etudes.ListerParFicheAsync(id, ct),
+        });
     }
 
     [HttpGet]

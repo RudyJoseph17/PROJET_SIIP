@@ -44,6 +44,31 @@ impossible une fois la fiche validée.
 
 **Export** : bouton *Excel* (modèle officiel rempli, colonne « COMMENTAIRES » ajoutée aux Généralités) et *Imprimer*.
 
+## Version 3 : phases d'études et Banque de projets
+
+Une fiche **validée** par le MPCE ouvre automatiquement, en brouillon, la phase suivante :
+
+```
+Fiche validée ─▶ Étude de préfaisabilité ─▶ Étude de faisabilité ─▶ Études de projet ─▶ PROJET VALIDÉ (Banque de projets)
+```
+
+Chaque phase reprend **les mêmes statuts que la fiche** (Brouillon, Soumise à l'UEP, À corriger, Rejetée, Soumise au MPCE,
+Validée) et le même circuit : le promoteur joint ses pièces jointes (1 au minimum, 10 au maximum, 20 Mo chacune) et
+soumet → l'UEP de son ministère examine → le MPCE rend un **avis** (Analyste → Chef de Service → Directeur, avec avis motivé,
+résultat et recommandations, sans grille). La faisabilité est toujours obligatoire. La validation des études de projet est la
+validation finale : le projet apparaît dans le module **Banque de projets** (vue `V_BP_PROJET_VALIDE`).
+
+Dans la liste des fiches, la colonne « Étape / statut » indique la phase où se trouve le projet et son statut
+(ex. « Faisabilité — À corriger (MPCE) », « Projet validé »).
+
+| Objet Oracle | Rôle |
+|---|---|
+| `T_IP_ETUDE` / `TB_IP_ETUDE` | Étude d'une phase (une par projet et par phase) ; méthodes `est_modifiable`, `nb_documents` |
+| `T_IP_ETUDE_DOCUMENT` / `TB_IP_ETUDE_DOCUMENT` | Pièces jointes (BLOB) |
+| `T_IP_AVIS` / `TB_IP_AVIS` | Avis du MPCE (un par arrivée de l'étude au MPCE) ; méthode `anomalie` |
+| `PKG_IP_ETUDE` | Écritures et circuit des études et des avis ; ouverture automatique de la phase suivante |
+| `V_IP_ETUDE`, `V_IP_ETUDE_DOCUMENT`, `V_IP_AVIS`, `V_BP_PROJET_VALIDE` | Vues lues par EF Core |
+
 ## Suivi de la progression
 
 - **Rédaction** : 5 étapes obligatoires (Introduction · Importance · Idées possibles · Meilleure idée + titre · Conclusion), soit 0 à 100 %.
@@ -78,8 +103,10 @@ Les rôles `UEP`, `DIP`, `DIP_ANALYSTE`, `DIP_CHEF_SERVICE` et `DIP_DIRECTEUR` s
 Scripts dans `Database/`, à exécuter dans le schéma applicatif (SQL*Plus / SQLcl) :
 
 ```
-SQL> @00_installer.sql          -- base neuve : scripts 01 à 13 + contrôle des objets invalides
-SQL> @00_mise_a_jour_v2.sql     -- base déjà en v1 : scripts 06 à 13 (données conservées)
+SQL> @00_installer.sql          -- base neuve : scripts 01 à 19 + contrôle des objets invalides
+SQL> @00_mise_a_jour_v2.sql     -- base en v1 : scripts 06 à 13 (données conservées)
+SQL> @00_mise_a_jour_v3.sql     -- base en v2 : scripts 14 à 19 (données conservées ; les fiches
+                                --   déjà validées passent en « Préfaisabilité — Brouillon »)
 SQL> @99_desinstaller.sql       -- suppression complète (données comprises)
 ```
 

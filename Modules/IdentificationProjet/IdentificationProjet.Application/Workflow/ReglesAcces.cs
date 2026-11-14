@@ -100,18 +100,28 @@ public static class ReglesGrille
     /// Actions ouvertes à l'utilisateur. Séparation des tâches : on ne valide pas
     /// une grille qu'on a soi-même rédigée ou validée (sauf Admin).
     /// </summary>
-    public static IReadOnlyList<string> Actions(GrilleAnalyse g, ContexteUtilisateur u)
+    public static IReadOnlyList<string> Actions(GrilleAnalyse g, ContexteUtilisateur u) =>
+        Actions(g.Statut, g.AnalysteId, g.ChefId, u);
+
+    /// <summary>Même circuit pour les avis sur les études.</summary>
+    public static IReadOnlyList<string> Actions(AvisEtude a, ContexteUtilisateur u) =>
+        Actions(a.Statut, a.AnalysteId, a.ChefId, u);
+
+    public static bool PeutSaisir(AvisEtude a, ContexteUtilisateur u) =>
+        a.Statut == StatutGrille.EnAnalyse && (u.EstAnalyste || u.EstAdmin);
+
+    private static IReadOnlyList<string> Actions(string statut, string? analysteId, string? chefId, ContexteUtilisateur u)
     {
-        switch (g.Statut)
+        switch (statut)
         {
             case StatutGrille.EnAnalyse when u.EstAnalyste || u.EstAdmin:
                 return new[] { ActionGrille.AnalysteTransmettre };
 
-            case StatutGrille.AuChefService when u.EstAdmin || (u.EstChefService && g.AnalysteId != u.UserId):
+            case StatutGrille.AuChefService when u.EstAdmin || (u.EstChefService && analysteId != u.UserId):
                 return new[] { ActionGrille.ChefValider, ActionGrille.ChefRenvoyer };
 
             case StatutGrille.AuDirecteur when u.EstAdmin
-                || (u.EstDirecteur && g.AnalysteId != u.UserId && g.ChefId != u.UserId):
+                || (u.EstDirecteur && analysteId != u.UserId && chefId != u.UserId):
                 return new[] { ActionGrille.DirecteurApprouver, ActionGrille.DirecteurRenvoyer };
 
             default:
@@ -128,4 +138,33 @@ public static class ReglesGrille
         if (u.EstDirecteur || u.EstAdmin) s.Add(StatutGrille.AuDirecteur);
         return s;
     }
+}
+
+/// <summary>Règles d'accès aux études (préfaisabilité, faisabilité, études de projet).</summary>
+public static class ReglesEtude
+{
+    public static bool EstPromoteur(EtudeProjet e, ContexteUtilisateur u) => e.PromoteurId == u.UserId;
+
+    public static bool EstUepCompetente(EtudeProjet e, ContexteUtilisateur u) =>
+        u.EstAdmin || (u.EstUep && !string.IsNullOrWhiteSpace(e.Ministere) && !string.IsNullOrWhiteSpace(u.Ministere)
+                       && string.Equals(e.Ministere.Trim(), u.Ministere.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    public static bool PeutConsulter(EtudeProjet e, ContexteUtilisateur u) =>
+        EstPromoteur(e, u) || u.EstMpce || EstUepCompetente(e, u);
+
+    public static bool PeutModifier(EtudeProjet e, ContexteUtilisateur u) => EstPromoteur(e, u) && e.EstModifiable;
+
+    public static bool PeutSoumettre(EtudeProjet e, ContexteUtilisateur u) => PeutModifier(e, u) && e.NbDocuments > 0;
+
+    public static IReadOnlyList<string> ActionsExamen(EtudeProjet e, ContexteUtilisateur u) =>
+        e.Statut == StatutFiche.SoumiseUep && EstUepCompetente(e, u)
+            ? new[] { ActionFiche.UepApprouver, ActionFiche.UepComplement, ActionFiche.UepRejeter }
+            : Array.Empty<string>();
+
+    public static bool PeutExecuter(EtudeProjet e, ContexteUtilisateur u, string action) =>
+        action == ActionFiche.Soumettre ? PeutSoumettre(e, u) : ActionsExamen(e, u).Contains(action);
+
+    /// <summary>Le promoteur voit les avis approuvés ; le MPCE les voit tous.</summary>
+    public static bool PeutConsulterAvis(AvisEtude a, EtudeProjet e, ContexteUtilisateur u) =>
+        u.EstMpce || (EstPromoteur(e, u) && a.Statut == StatutGrille.Approuvee);
 }

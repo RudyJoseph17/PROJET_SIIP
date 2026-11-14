@@ -1,0 +1,88 @@
+@model AvisEditViewModel
+@{
+    var a = Model.Avis!;
+    var e = Model.Etude!;
+    ViewData["Title"] = $"Avis — {PhaseProjet.Libelle(e.Phase)}";
+    ViewData["Subtitle"] = $"{e.CodeFiche} · avis n° {a.Numero} · {StatutGrille.Libelle(a.Statut)}";
+}
+<partial name="_NavModule" />
+<div class="row">
+    <div class="col-xl-9 col-lg-8">
+        <partial name="_EtudeResume" model="e" />
+
+        <form asp-action="Edit" asp-route-id="@a.IdAvis" method="post" id="form-avis">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+            }
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">Avis de l'analyse</div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label asp-for="Commentaire" class="font-weight-bold"></label> <span class="text-danger">*</span>
+                        <textarea asp-for="Commentaire" class="form-control" rows="6"
+                                  placeholder="Complétude, exactitude des calculs, hypothèses, option retenue, réalisabilité…"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Decision" class="font-weight-bold"></label> <span class="text-danger">*</span>
+                        <select asp-for="Decision" class="custom-select" id="Decision">
+                            <option value="">— Choisir —</option>
+                            @foreach (var d in DecisionGrille.Toutes)
+                            {
+                                <option value="@d">@DecisionGrille.LibelleEtude(d)</option>
+                            }
+                        </select>
+                        <small class="form-text text-muted" id="effet-decision"></small>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label asp-for="Recommandations" class="font-weight-bold"></label>
+                        <span class="small text-muted">(obligatoires si l'étude doit être révisée ou est rejetée : elles sont transmises au promoteur)</span>
+                        <textarea asp-for="Recommandations" class="form-control" rows="4"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="card shadow mb-4">
+                <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
+                    <span class="small text-muted mb-2 mb-md-0">Signature : <strong>Analyste de projet</strong> — enregistrée à la transmission.</span>
+                    <div>
+                        <button type="submit" name="commande" value="enregistrer" class="btn btn-primary"><i class="fas fa-save mr-1"></i> Enregistrer</button>
+                        <button type="submit" name="commande" value="transmettre" class="btn btn-success"
+                                onclick="return confirm('Enregistrer et transmettre l\'avis au Chef de Service ?');">
+                            <i class="fas fa-paper-plane mr-1"></i> Enregistrer et transmettre au Chef de Service
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="col-xl-3 col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">Circuit de l'avis</div>
+            <div class="card-body small">
+                <ol class="pl-3 mb-2">
+                    <li class="font-weight-bold text-primary">Analyste de projet</li>
+                    <li>Chef de Service</li>
+                    <li>Vu et approuvé (Directeur)</li>
+                </ol>
+                <p class="text-muted mb-0">La décision s'applique à l'étude à l'approbation du Directeur. Une étude acceptée ouvre la phase suivante.</p>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+    (function () {
+        var d = document.getElementById('Decision');
+        var statuts = { ACCEPTE: '@Html.Raw(StatutFiche.Libelle(StatutFiche.ApprouveeDip))', A_REVISER: '@Html.Raw(StatutFiche.Libelle(StatutFiche.ComplementDip))', REJETE: '@Html.Raw(StatutFiche.Libelle(StatutFiche.RejeteeDip))' };
+        function maj() {
+            document.getElementById('effet-decision').textContent = d.value
+                ? 'À l\'approbation par le Directeur, l\'étude passera au statut : « ' + statuts[d.value] + ' ».' : '';
+            document.getElementById('Recommandations').required = d.value === 'A_REVISER' || d.value === 'REJETE';
+            document.getElementById('Commentaire').required = true;
+        }
+        d.addEventListener('change', maj); maj();
+        document.querySelector('button[value=enregistrer]').addEventListener('click', function () { document.getElementById('form-avis').noValidate = true; });
+        document.querySelector('button[value=transmettre]').addEventListener('click', function () { document.getElementById('form-avis').noValidate = false; });
+    })();
+    </script>
+}

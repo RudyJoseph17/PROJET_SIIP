@@ -3,6 +3,7 @@
     var u = ViewData["Utilisateur"] as ContexteUtilisateur;
     var controleur = ViewContext.RouteData.Values["controller"]?.ToString();
     var aTraiter = ViewData["GrillesATraiter"] as int?;
+    var avisATraiter = ViewData["AvisATraiter"] as int?;
 }
 @if (u?.EstMpce == true)
 {
@@ -16,6 +17,12 @@
             <a class="nav-link @(controleur == "Grilles" ? "active" : "")" asp-controller="Grilles" asp-action="Index">
                 <i class="fas fa-clipboard-list mr-1"></i> Grilles d'analyse (MPCE)
                 @if (aTraiter > 0) { <span class="badge badge-warning ml-1">@aTraiter</span> }
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(controleur == "Avis" ? "active" : "")" asp-controller="Avis" asp-action="Index">
+                <i class="fas fa-file-signature mr-1"></i> Avis sur les études (MPCE)
+                @if (avisATraiter > 0) { <span class="badge badge-warning ml-1">@avisATraiter</span> }
             </a>
         </li>
     </ul>

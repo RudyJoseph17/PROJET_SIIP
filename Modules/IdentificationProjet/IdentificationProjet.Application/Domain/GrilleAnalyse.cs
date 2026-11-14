@@ -161,7 +161,16 @@ public static class DecisionGrille
         _ => ""
     };
 
-    /// <summary>Statut que prendra la fiche à l'approbation de la grille.</summary>
+    /// <summary>Libellés pour l'avis sur une étude.</summary>
+    public static string LibelleEtude(string? decision) => decision switch
+    {
+        Accepte => "L'étude est acceptée",
+        AReviser => "L'étude doit être révisée",
+        Rejete => "L'étude est rejetée",
+        _ => ""
+    };
+
+    /// <summary>Statut que prendra la fiche (ou l'étude) à l'approbation de la grille (ou de l'avis).</summary>
     public static string StatutFicheResultant(string? decision) => decision switch
     {
         Accepte => StatutFiche.ApprouveeDip,

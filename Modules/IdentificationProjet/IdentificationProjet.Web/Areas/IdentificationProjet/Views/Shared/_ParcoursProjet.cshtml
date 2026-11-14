@@ -1,0 +1,49 @@
+@*
+    Parcours du projet : Identification -> Préfaisabilité -> Faisabilité -> Études de projet.
+    Modèle : (fiche, études ouvertes, phase mise en évidence)
+*@
+@model (FicheIdentification Fiche, List<EtudeProjet> Etudes, string? PhaseActive)
+@{
+    var f = Model.Fiche;
+    var etapes = new List<(string Phase, string? Statut, int? IdEtude)> { (PhaseProjet.Identification, f.Statut, null) };
+    foreach (var phase in PhaseProjet.Etudes)
+    {
+        var e = Model.Etudes.FirstOrDefault(x => x.Phase == phase);
+        etapes.Add((phase, e?.Statut, e?.IdEtude));
+    }
+}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-wrap justify-content-between align-items-center">
+        <span class="mr-2">Parcours du projet</span>
+        <span class="badge badge-@PhaseProjet.CouleurStatutProjet(f.StatutPhase, f.ProjetValide) text-wrap text-left">@f.LibelleStatutProjet</span>
+    </div>
+    <ul class="list-group list-group-flush small">
+        @foreach (var (phase, statut, idEtude) in etapes)
+        {
+            var active = phase == (Model.PhaseActive ?? "");
+            var fait = statut == StatutFiche.ApprouveeDip;
+            var bloque = statut is StatutFiche.RejeteeUep or StatutFiche.RejeteeDip;
+            var icone = statut is null ? "fa-circle text-gray-300" : fait ? "fa-check-circle text-success" : bloque ? "fa-times-circle text-danger" : "fa-dot-circle text-primary";
+            <li class="list-group-item @(active ? "list-group-item-light font-weight-bold" : "")">
+                <i class="fas fa-fw @icone"></i>
+                @if (phase == PhaseProjet.Identification)
+                {
+                    <a asp-controller="Fiches" asp-action="Details" asp-route-id="@f.IdFiche">Fiche d'identification</a>
+                }
+                else if (idEtude is not null)
+                {
+                    <a asp-controller="Etudes" asp-action="Details" asp-route-id="@idEtude">@PhaseProjet.Libelle(phase)</a>
+                }
+                else
+                {
+                    <span class="text-muted">@PhaseProjet.Libelle(phase)</span>
+                }
+                <div class="ml-4 text-muted font-weight-normal">@(statut is null ? "À venir" : StatutFiche.Libelle(statut))</div>
+            </li>
+        }
+        @if (f.ProjetValide)
+        {
+            <li class="list-group-item list-group-item-success"><i class="fas fa-fw fa-award"></i> Projet validé — inscrit à la Banque de projets</li>
+        }
+    </ul>
+</div>

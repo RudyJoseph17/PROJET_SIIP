@@ -191,6 +191,10 @@ public class ListeFichesViewModel
     public bool EstExaminateur { get; set; }
     /// <summary>Nombre de grilles d'analyse en attente d'une action de l'utilisateur (MPCE).</summary>
     public int GrillesATraiter { get; set; }
+    /// <summary>Nombre d'avis sur des études en attente d'une action de l'utilisateur (MPCE).</summary>
+    public int AvisATraiter { get; set; }
+    /// <summary>Études soumises à l'UEP de l'utilisateur.</summary>
+    public List<EtudeProjet> EtudesAExaminer { get; set; } = new();
 }
 
 public class DetailsFicheViewModel
@@ -198,6 +202,8 @@ public class DetailsFicheViewModel
     public required FicheIdentification Fiche { get; init; }
     public required ContexteUtilisateur Utilisateur { get; init; }
     public List<GrilleAnalyse> Grilles { get; init; } = new();
+    /// <summary>Phases d'études ouvertes (préfaisabilité, faisabilité, études de projet).</summary>
+    public List<EtudeProjet> Etudes { get; init; } = new();
     public bool PeutModifier => ReglesAcces.PeutModifier(Fiche, Utilisateur);
     public bool PeutSoumettre => ReglesAcces.PeutSoumettre(Fiche, Utilisateur);
     public bool PeutSupprimer => ReglesAcces.PeutSupprimer(Fiche, Utilisateur);

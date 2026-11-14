@@ -12,6 +12,7 @@ public static class DependencyInjection
         services.AddDbContext<IdentificationProjetDbContext>(o => o.UseOracle(connectionString));
         services.AddScoped<IFicheIdentificationRepository, FicheIdentificationRepository>();
         services.AddScoped<IGrilleAnalyseRepository, GrilleAnalyseRepository>();
+        services.AddScoped<IEtudeRepository, EtudeRepository>();
         services.AddSingleton<IGrilleExcelExporter, GrilleExcelExporter>();
         services.AddMemoryCache();   // référentiel géographique
         return services;

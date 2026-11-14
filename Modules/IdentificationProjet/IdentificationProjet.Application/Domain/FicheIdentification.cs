@@ -68,6 +68,13 @@ public class FicheIdentification
     public int NbGrilles { get; set; }
     public string? MeilleureIdee { get; set; }
 
+    // v3 : phase où se trouve le projet (IDENTIFICATION, PREFAISABILITE…) et statut dans cette phase
+    public string PhaseCourante { get; set; } = PhaseProjet.Identification;
+    public string StatutPhase { get; set; } = StatutFiche.Brouillon;
+    public bool ProjetValide { get; set; }
+
+    public string LibelleStatutProjet => PhaseProjet.LibelleStatutProjet(PhaseCourante, StatutPhase, ProjetValide);
+
     public List<IdeePossible> Idees { get; set; } = new();
     public List<AnnexeFiche> Annexes { get; set; } = new();
     public List<HistoriqueFiche> Historique { get; set; } = new();
@@ -115,6 +122,8 @@ public class HistoriqueFiche
 {
     public int IdHistorique { get; set; }
     public int IdFiche { get; set; }
+    /// <summary>null = identification ; sinon PREFAISABILITE, FAISABILITE, ETUDES_PROJET.</summary>
+    public string? Phase { get; set; }
     public string Action { get; set; } = "";
     public string? AncienStatut { get; set; }
     public string? NouveauStatut { get; set; }

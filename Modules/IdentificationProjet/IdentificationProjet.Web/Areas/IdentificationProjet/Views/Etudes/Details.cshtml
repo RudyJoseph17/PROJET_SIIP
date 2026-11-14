@@ -1,0 +1,138 @@
+@model DetailsEtudeViewModel
+@{
+    var e = Model.Etude;
+    ViewData["Title"] = $"{PhaseProjet.Libelle(e.Phase)} — {e.CodeFiche}";
+    ViewData["Subtitle"] = e.TitreProjet;
+}
+@section PageActions {
+    <div>
+        <a asp-controller="Fiches" asp-action="Details" asp-route-id="@e.IdFiche" class="btn btn-sm btn-outline-secondary shadow-sm"><i class="fas fa-file-alt fa-sm mr-1"></i> Fiche du projet</a>
+        @if (Model.PeutModifier)
+        {
+            <a asp-action="Edit" asp-route-id="@e.IdEtude" class="btn btn-sm btn-primary shadow-sm"><i class="fas fa-edit fa-sm mr-1"></i> Compléter l'étude</a>
+        }
+    </div>
+}
+
+<div class="row">
+    <div class="col-xl-9 col-lg-8">
+
+        @if (Model.ActionsExamen.Count > 0)
+        {
+            <div class="card shadow mb-4 border-left-warning">
+                <div class="card-body">
+                    <h6 class="font-weight-bold"><i class="fas fa-clipboard-check mr-1"></i> Examen de l'UEP</h6>
+                    <p class="small text-muted">Vérifiez que l'étude est complète et conforme aux priorités du secteur avant de la transmettre au MPCE.</p>
+                    <form asp-action="Examiner" asp-route-id="@e.IdEtude" method="post">
+                        <div class="form-group">
+                            <label for="commentaire">Commentaire <span class="small text-muted">(obligatoire pour un complément ou un rejet)</span></label>
+                            <textarea id="commentaire" name="commentaire" class="form-control" rows="3" maxlength="4000"></textarea>
+                        </div>
+                        @foreach (var op in Model.ActionsExamen)
+                        {
+                            var (css, libelle) = op switch
+                            {
+                                ActionFiche.UepApprouver => ("success", "Approuver et transmettre au MPCE"),
+                                ActionFiche.UepComplement => ("warning", "Demander un complément"),
+                                _ => ("danger", "Rejeter")
+                            };
+                            <button type="submit" name="operation" value="@op" class="btn btn-@css mr-1 mb-1"
+                                    data-message="@libelle : confirmer ?" onclick="return confirm(this.dataset.message);">@libelle</button>
+                        }
+                    </form>
+                </div>
+            </div>
+        }
+        else if (Model.PeutModifier)
+        {
+            var dernier = Model.Historique.LastOrDefault(h => h.NouveauStatut == e.Statut && !string.IsNullOrWhiteSpace(h.Commentaire));
+            <div class="alert @(e.Statut == StatutFiche.Brouillon ? "alert-info" : "alert-warning") d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    @if (e.Statut == StatutFiche.Brouillon)
+                    {
+                        <i class="fas fa-info-circle mr-1"></i>@:Joignez les documents de l'étude puis soumettez-la : elle sera examinée par l'UEP puis par le MPCE.
+                    }
+                    else
+                    {
+                        <strong>@StatutFiche.Libelle(e.Statut)</strong>
+                        @if (dernier is not null) { <div class="small" style="white-space:pre-line">@dernier.ActeurNom : @dernier.Commentaire</div> }
+                    }
+                </div>
+                <div class="mt-2 mt-md-0">
+                    <a asp-action="Edit" asp-route-id="@e.IdEtude" class="btn btn-sm btn-primary">Compléter l'étude</a>
+                    @if (Model.PeutSoumettre)
+                    {
+                        <form asp-action="Soumettre" asp-route-id="@e.IdEtude" method="post" class="d-inline"
+                              data-confirm="Soumettre l'étude pour examen ? Elle ne sera plus modifiable sauf demande de correction.">
+                            <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-paper-plane mr-1"></i> Soumettre</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between">
+                <span>@PhaseProjet.Libelle(e.Phase)</span>
+                <partial name="_StatutBadge" model="e.Statut" />
+            </div>
+            <div class="card-body">
+                <dl class="row small">
+                    <dt class="col-sm-4">Projet</dt><dd class="col-sm-8">@e.CodeFiche — @e.TitreProjet</dd>
+                    <dt class="col-sm-4">Ministère / Institution</dt><dd class="col-sm-8">@e.NomOrganisation</dd>
+                    <dt class="col-sm-4">Promoteur</dt><dd class="col-sm-8">@e.PromoteurNom</dd>
+                    <dt class="col-sm-4">Soumise le</dt><dd class="col-sm-8">@(e.DateSoumission?.ToString("dd/MM/yyyy") ?? "—")</dd>
+                    @if (e.DateValidation is not null)
+                    {
+                        <dt class="col-sm-4">Validée le</dt><dd class="col-sm-8">@e.DateValidation?.ToString("dd/MM/yyyy")</dd>
+                    }
+                </dl>
+                <h6 class="font-weight-bold text-gray-800">Note de présentation</h6>
+                @if (string.IsNullOrWhiteSpace(e.Description)) { <p class="text-muted font-italic small">Non renseignée.</p> }
+                else { <p style="white-space:pre-line">@e.Description</p> }
+
+                <h6 class="font-weight-bold text-gray-800 mt-3">Pièces jointes <span class="badge badge-secondary">@e.NbDocuments</span></h6>
+                <partial name="_DocumentsEtude" model="e" />
+            </div>
+        </div>
+
+        @if (Model.AvisVisibles.Any())
+        {
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">Avis du MPCE</div>
+                <ul class="list-group list-group-flush">
+                    @foreach (var a in Model.AvisVisibles)
+                    {
+                        <li class="list-group-item">
+                            <a asp-controller="Avis" asp-action="Details" asp-route-id="@a.IdAvis" class="font-weight-bold">Avis n° @a.Numero</a>
+                            <span class="badge badge-@StatutGrille.Couleur(a.Statut) ml-1">@StatutGrille.Libelle(a.Statut)</span>
+                            @if (a.Statut == StatutGrille.Approuvee)
+                            {
+                                <div>@DecisionGrille.LibelleEtude(a.Decision) — le @a.DateDirecteur?.ToString("dd/MM/yyyy")</div>
+                                @if (!string.IsNullOrWhiteSpace(a.Recommandations)) { <div class="small text-muted" style="white-space:pre-line">Recommandations : @a.Recommandations</div> }
+                            }
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+
+    <div class="col-xl-3 col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">Historique de la phase</div>
+            <div class="card-body">
+                <ul class="list-unstyled small mb-0">
+                    @foreach (var h in Model.Historique.AsEnumerable().Reverse())
+                    {
+                        <li class="mb-3">
+                            <div class="font-weight-bold">@ActionFiche.Libelle(h.Action, h.Phase)</div>
+                            <div class="text-muted">@h.DateAction.ToString("dd/MM/yyyy HH:mm") · @h.ActeurNom</div>
+                            @if (!string.IsNullOrWhiteSpace(h.Commentaire)) { <div class="border-left pl-2 mt-1" style="white-space:pre-line">@h.Commentaire</div> }
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

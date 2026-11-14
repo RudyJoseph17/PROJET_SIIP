@@ -233,6 +233,7 @@
     </div>
 
     <div class="col-xl-3 col-lg-4">
+        <partial name="_ParcoursProjet" model="(f, Model.Etudes, (string?)PhaseProjet.Identification)" />
         <partial name="_Progression" model="f" />
 
         @if (Model.Grilles.Count > 0)
@@ -257,10 +258,11 @@
         }
 
         <div class="card shadow mb-4">
-            <div class="card-header py-3">Historique</div>
+            <div class="card-header py-3">Historique de l'identification</div>
             <div class="card-body">
                 <ul class="list-unstyled small mb-0 ip-historique">
                     @foreach (var h in f.Historique.AsEnumerable().Reverse()
+                                             .Where(h => h.Phase is null)   // les phases d'études ont leur propre historique
                                              .Where(h => ReglesAcces.VoitEtapesInternesMpce(Model.Utilisateur) || !ActionFiche.EstInterneMpce(h.Action)))
                     {
                         <li class="mb-3">

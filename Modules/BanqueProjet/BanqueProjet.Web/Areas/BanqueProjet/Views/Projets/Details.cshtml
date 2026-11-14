@@ -1,0 +1,39 @@
+@model ProjetValide
+@{
+    ViewData["Title"] = Model.TitreProjet;
+    ViewData["Subtitle"] = $"Banque de projets — {Model.CodeFiche}";
+    string D(DateTime? d) => d?.ToString("dd/MM/yyyy") ?? "—";
+}
+@section PageActions {
+    <a asp-action="Index" class="btn btn-sm btn-outline-secondary shadow-sm"><i class="fas fa-arrow-left fa-sm mr-1"></i> Liste</a>
+}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">Projet validé <span class="badge badge-success ml-1">Validé le @D(Model.DateValidationProjet)</span></div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Code</dt><dd class="col-sm-8">@Model.CodeFiche</dd>
+                    <dt class="col-sm-4">Ministère / Institution</dt><dd class="col-sm-8">@Model.MinistereInstitution</dd>
+                    <dt class="col-sm-4">Promoteur</dt><dd class="col-sm-8">@Model.PromoteurNom</dd>
+                    <dt class="col-sm-4">Localisation</dt><dd class="col-sm-8">@Model.Departement@(string.IsNullOrWhiteSpace(Model.Commune) ? "" : " — " + Model.Commune)</dd>
+                </dl>
+                <h6 class="font-weight-bold text-gray-800">Problème à résoudre</h6>
+                <p style="white-space:pre-line">@Model.DescriptionProbleme</p>
+                <h6 class="font-weight-bold text-gray-800">Objectif général</h6>
+                <p style="white-space:pre-line" class="mb-0">@Model.ObjectifGeneral</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">Validations du MPCE</div>
+            <ul class="list-group list-group-flush small">
+                <li class="list-group-item"><i class="fas fa-check-circle text-success mr-1"></i> Fiche d'identification — @D(Model.DateValidationFiche)</li>
+                <li class="list-group-item"><i class="fas fa-check-circle text-success mr-1"></i> Étude de préfaisabilité — @D(Model.DateValidationPrefaisabilite)</li>
+                <li class="list-group-item"><i class="fas fa-check-circle text-success mr-1"></i> Étude de faisabilité — @D(Model.DateValidationFaisabilite)</li>
+                <li class="list-group-item"><i class="fas fa-check-circle text-success mr-1"></i> Études de projet — @D(Model.DateValidationProjet)</li>
+            </ul>
+        </div>
+    </div>
+</div>

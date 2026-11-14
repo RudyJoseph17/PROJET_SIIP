@@ -9,7 +9,7 @@
 --   TRANSMISE_DIP : la fiche n'est plus modifiable ; une GRILLE D'ANALYSE est générée
 --                   automatiquement (nouvelle grille à chaque arrivée, sans écraser les anciennes).
 --   L'approbation de la grille par le Directeur applique son résultat à la fiche :
---     ACCEPTE   -> APPROUVEE_DIP  (validée : plus modifiable)
+--     ACCEPTE   -> APPROUVEE_DIP  (validée : plus modifiable ; ouvre la préfaisabilité, v3)
 --     A_REVISER -> COMPLEMENT_DIP (à corriger : modifiable, puis SOUMETTRE -> TRANSMISE_DIP)
 --     REJETE    -> REJETEE_DIP
 --
@@ -194,10 +194,12 @@ CREATE OR REPLACE PACKAGE BODY pkg_ip_identification AS
         p_acteur_id IN VARCHAR2, p_acteur_nom IN VARCHAR2)
     IS
     BEGIN
-        INSERT INTO tb_ip_historique
-        VALUES (t_ip_historique(seq_ip_historique.NEXTVAL, p_id_fiche, p_action,
-                                p_ancien, p_nouveau, SUBSTR(p_commentaire, 1, 4000),
-                                p_acteur_id, p_acteur_nom, SYSDATE));
+        -- Liste de colonnes explicite : compatible avant et après l'ajout de PHASE (v3)
+        INSERT INTO tb_ip_historique h
+               (h.id_historique, h.id_fiche, h.action, h.ancien_statut, h.nouveau_statut,
+                h.commentaire, h.acteur_id, h.acteur_nom, h.date_action)
+        VALUES (seq_ip_historique.NEXTVAL, p_id_fiche, p_action, p_ancien, p_nouveau,
+                SUBSTR(p_commentaire, 1, 4000), p_acteur_id, p_acteur_nom, SYSDATE);
     END journaliser;
 
     FUNCTION libelle_lieu (p_id IN NUMBER) RETURN VARCHAR2 IS
@@ -508,6 +510,7 @@ CREATE OR REPLACE PACKAGE BODY pkg_ip_identification AS
         v_fiche   t_ip_fiche := charger(p_id_fiche, TRUE);
         v_attendu VARCHAR2(20);
         v_nouveau VARCHAR2(20);
+        v_v3      PLS_INTEGER;
 
         PROCEDURE exiger_commentaire IS
         BEGIN
@@ -561,6 +564,17 @@ CREATE OR REPLACE PACKAGE BODY pkg_ip_identification AS
         -- Chaque arrivée au MPCE produit une nouvelle grille d'analyse
         IF v_nouveau = 'TRANSMISE_DIP' THEN
             generer_grille(p_id_fiche);
+        END IF;
+
+        -- v3 : la fiche validée ouvre la phase de préfaisabilité (PKG_IP_ETUDE).
+        -- Appel dynamique : ce package reste compilable avant l'installation de la v3.
+        IF v_nouveau = 'APPROUVEE_DIP' THEN
+            SELECT COUNT(*) INTO v_v3 FROM user_objects
+             WHERE object_name = 'PKG_IP_ETUDE' AND object_type = 'PACKAGE';
+            IF v_v3 > 0 THEN
+                EXECUTE IMMEDIATE 'BEGIN pkg_ip_etude.ouvrir_phase(:1, :2); END;'
+                    USING p_id_fiche, 'PREFAISABILITE';
+            END IF;
         END IF;
     END appliquer_transition;
 

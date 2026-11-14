@@ -1,0 +1,22 @@
+@* Rappel de l'étude examinée (en-tête des pages d'avis) *@
+@model EtudeProjet
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between">
+        <span>@PhaseProjet.Libelle(Model.Phase) — @Model.CodeFiche</span>
+        <a asp-controller="Etudes" asp-action="Details" asp-route-id="@Model.IdEtude" class="small">Ouvrir l'étude</a>
+    </div>
+    <div class="card-body">
+        <dl class="row small mb-2">
+            <dt class="col-sm-4">Titre du projet</dt><dd class="col-sm-8 font-weight-bold">@Model.TitreProjet</dd>
+            <dt class="col-sm-4">Ministère / Institution</dt><dd class="col-sm-8">@Model.NomOrganisation</dd>
+            <dt class="col-sm-4">Promoteur</dt><dd class="col-sm-8">@Model.PromoteurNom</dd>
+        </dl>
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <h6 class="font-weight-bold text-gray-800">Note de présentation</h6>
+            <p style="white-space:pre-line">@Model.Description</p>
+        }
+        <h6 class="font-weight-bold text-gray-800">Pièces jointes</h6>
+        <partial name="_DocumentsEtude" model="Model" />
+    </div>
+</div>

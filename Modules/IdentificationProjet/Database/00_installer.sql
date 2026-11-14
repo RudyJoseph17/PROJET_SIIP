@@ -2,7 +2,7 @@
 -- SIIP - Module "Identification projet" : INSTALLATION COMPLÈTE (base neuve)
 -- SQL*Plus / SQLcl / SQL Developer (F5), connecté au schéma applicatif :
 --   SQL> @00_installer.sql
--- Base déjà en version 1 : utiliser plutôt @00_mise_a_jour_v2.sql
+-- Base existante : @00_mise_a_jour_v2.sql (depuis v1) puis @00_mise_a_jour_v3.sql (depuis v2)
 -- =============================================================================
 SET DEFINE OFF
 WHENEVER SQLERROR EXIT SQL.SQLCODE
@@ -21,6 +21,13 @@ PROMPT === Version 2 : grille d'analyse du MPCE
 @@11_donnees_localisation.sql
 @@12_v2_donnees.sql
 @@13_v2_migration.sql
+PROMPT === Version 3 : préfaisabilité, faisabilité, études de projet
+@@14_v3_types.sql
+@@15_v3_tables.sql
+@@16_v3_types_corps.sql
+@@17_v3_vues.sql
+@@18_v3_package_etude.sql
+@@19_v3_migration.sql
 PROMPT === Vérification : aucun objet invalide
 DECLARE
     v_liste VARCHAR2(4000);
@@ -37,4 +44,4 @@ BEGIN
     END IF;
 END;
 /
-PROMPT Module Identification projet installé (v2).
+PROMPT Module Identification projet installé (v3).
